@@ -1,6 +1,8 @@
 package token
+import java.io.{File,PrintWriter}
+import scala.io._
+//import helpToken.HelpTokenizing
 
-import helpToken.HelpTokenizing
 class helpFunctions() {
 
 
@@ -13,9 +15,32 @@ class helpFunctions() {
   def isCommentLine(x:String) = x.matches("""^\/\/.*""")
 
 
-  def check (word: String): String = {
+
+/*  def check (word: String): String = {
     if(isIntegerConstant(word))
       return "digit"
+    return ""
+  }*/
+
+
+  //Function to check the type of the token
+  def getTokenType (tokenType: String):String = {
+    val isKeyword = List(
+      "Class", "constructor","function","method","field","static","var","int","char","boolean","void","true","false"
+      ,"null","this","let","do","if","else","while","return")
+
+    val isSymbol = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<", ">", "=", "~")
+
+    if(isKeyword.indexOf(tokenType) >= 0)
+      return "keyword"
+    if(isSymbol.indexOf(tokenType) >= 0)
+      return "symbol"
+    if(isIntegerConstant(tokenType))
+      return "integerConstant"
+    if(isStringConstant(tokenType))
+      return "stringConstant"
+    if(isIdentifier(tokenType))
+      return "identifier"
     return ""
   }
 
@@ -28,25 +53,37 @@ class helpFunctions() {
     }
     return ""
   }
+
 }
 
 class Tokenizing {
+
+  //var tokensList:List[String] = null
+  //var tokenIndex = 0;
+  //var help = new helpFunctions
   def tokenize(fileName: String, path: String, lines: String): Unit = {
     val tokenFilePath = "\\" + fileName + "T.xml"
     val tokenPath = path.concat(tokenFilePath)
 
     println("the new path is:\n" + tokenPath)
 
-    var tokenFile = ""
+    //tokensList = Source.fromFile(fileName).getLines().toList
+
+   var tokenFile = ""
 
     val help = new helpFunctions
     var line = lines
     var word = ""
     var ch = ""
 
+   /* while (tokenIndex < tokensList.length) {
+      //val tokenContent =
+
+      }
+    }*/
     while(!lines.isEmpty) {
       word += line.head
-      ch = help.check(word)
+      ch = help.getTokenType(word)
       ch match {
         case "digit" =>
           tokenFile += help.digitToken(line)
@@ -58,4 +95,11 @@ class Tokenizing {
     writer.write("byby")
     writer.close()
   }
+
+
+}
+
+class Parsing{
+
+
 }
