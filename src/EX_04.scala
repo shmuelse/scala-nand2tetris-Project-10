@@ -9,7 +9,10 @@ object EX_04 {
 
   var indentLevel = 0
   var xmlWriter: java.io.PrintWriter = null
+  var xmlParser = new XMLParsing
+  var tokenizing = new Tokenizing
   val help = new HelpFunctions
+
 
 
   class HelpFunctions {
@@ -78,6 +81,10 @@ object EX_04 {
       }
     }
 
+    def writeFormatted(str: String): Unit = {
+      xmlWriter.write("  " * indentLevel + str + "\n")
+
+    }
 
   }
 
@@ -117,10 +124,8 @@ object EX_04 {
       writer.close()
     }
 
-    // Print to the xml file
-    def writeFormatted(str: String, indentLevel: Int): Unit = {
-      xmlWriter.write("  " * indentLevel + str + "\n")
-    }
+
+
 
 
 
@@ -128,80 +133,47 @@ object EX_04 {
 
   class Tokenizing {
 
-
     def tokenize(fileName: String, path: String, lines: String): Unit = {
 
       val tokenPath = path.concat("\\" + fileName + "T.xml")
       println("the new path is:\n" + tokenPath)
 
+      tokensList = Source.fromFile(tokenPath).getLines().toList
+      indexOfToken = 0
 
-      tokensList = Source.fromFile(fileName).getLines().toList
-
-      indexOfToken = 0;
 
       while (indexOfToken < tokensList.length) {
 
-        val tokenContent = helper.getTagContent(tokensList(indexOfToken))
-
-        xmlParser.writeFormatted(tokensList(indexOfToken) + ":", indentLevel)
-        xmlParser.writeFormatted(helper.getTokenType(tokensList(indexOfToken)), indentLevel)
-        xmlParser.writeFormatted(helper.getTagContent(tokensList(indexOfToken)), indentLevel)
+        help.writeFormatted(tokensList(indexOfToken) + ":")
+        help.writeFormatted(help.getTokenType(tokensList(indexOfToken)))
+        help.writeFormatted(help.getTagContent(tokensList(indexOfToken)))
 
         indexOfToken += 1
       }
-
-      /*  var tokenFile = ""
-
-    val help = new helpFunctions
-    var line = lines
-    var word = ""
-    var ch = ""
-
-    while(!lines.isEmpty) {
-      word += line.head
-      ch = help.getTokenType(word)
-      ch match {
-        case "digit" =>
-          tokenFile += help.digitToken(line)
-      }
     }
-
-    val writer = new java.io.FileWriter(tokenPath)
-
-    writer.write("byby")
-    writer.close()*/
-    }
-
-
   }
 
   object main extends App {
     println("Enter file path:")
 
-    val read = scala.io.StdIn.readLine()
-    val path = new java.io.File(read).getCanonicalPath
+    val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath
     println("path is:\n" + path)
 
 
-    val tok = new Tokenizing()
-    var func = new HelpFunctions
-    var xmlParser = new XMLParsing
     var str = ""
     refArrayOps(new File(path).listFiles).foreach {
       file => {
-
-        if (!func.hasJackFileExtention(file.getPath)) {
-
+        if (!help.hasJackFileExtention(file.getPath)) {
           println("Not A JACK File\n")
-        } else {
+        }
+        else {
           val jackFileName = file.getName
-          val fileName = jackFileName.replaceAll(".jack", "")
+          val fileName = jackFileName.replaceAll(".jack", ".xml")
           xmlParser.createXMLFile(path + fileName)
-          xmlParser
-          val lines = Source.fromFile(file.getPath).mkString //.replaceAll(" ", "")
+          xmlWriter = new PrintWriter(new File(path + fileName))
+          tokenizing.tokenize(file.getName, path, Source.fromFile(file.getPath).mkString)
+          xmlWriter.close()
 
-          println("the file is:\n" + fileName)
-          tok.tokenize(fileName, path, lines)
         }
       }
     }
