@@ -7,7 +7,7 @@ object EX_04 {
   var indexOfToken = 0
   var tokensList: List[String] = null
 
-  var indentLevel = 0
+  var indentLevel = 1
   var xmlWriter: java.io.PrintWriter = null
   var xmlParser = new XMLParsing
   var tokenizing = new Tokenizing
@@ -54,6 +54,15 @@ object EX_04 {
       return ""
     }
 
+    /**
+     * This function checks if the parameter is a special
+     * character like "&" etc. and returns us what needs
+     * to replace the character in the XML file
+     *
+     * @param str is the param to print between the xml contents
+     * @param tokenType
+     * @return Alternative value in case needed...
+     */
     def getContent(str: String, tokenType: String): String = {
 
       var stringList = str;
@@ -73,6 +82,11 @@ object EX_04 {
 
     }
 
+    /**
+     *
+     * @param token
+     * @return
+     */
     def getTagContent(token: String): String = {
       val matcher = """\<.*\>\s(.*?)\s\<.*\>""".r
       matcher findFirstIn token match {
@@ -81,6 +95,12 @@ object EX_04 {
       }
     }
 
+
+    /**
+     * Indents the contents of the XML file
+     *
+     * @param str
+     */
     def writeFormatted(str: String): Unit = {
       xmlWriter.write("  " * indentLevel + str + "\n")
 
@@ -91,20 +111,29 @@ object EX_04 {
   class XMLParsing {
 
 
-    //return the type of the token ready for XML file
+    /**
+     * @param str is the var to print between thw xml contents
+     *
+     * @return ready string with the type of the token for XML node
+     */
     def writeXmlNode(str: String): String = {
-      val tokenName: String = help.getTokenType(str)
-      return ("<" + tokenName + "> " + help.getContent(str, tokenName) + " </" + tokenName + ">")
+      val tokenType: String = help.getTokenType(str)
+      return ("<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">")
     }
 
-    // Create the Xml file
-    def createXMLFile(fileName: String) = {
 
-      var isComment: Boolean = false;
+    /**
+     * Creates an XML file in the path the user inserted
+     *
+     * @param fileName is the path and file name
+     */
+    def createXMLFile(fileName: String) = {
 
       val writer = new PrintWriter(new File(fileName.replace(".jack", "T.xml")))
 
       val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+)?""".r
+
+      var isComment: Boolean = false;
 
       writer.write("<tokens>" + "\n")
 
@@ -124,15 +153,18 @@ object EX_04 {
       writer.close()
     }
 
-
-
-
-
-
   }
+
+
 
   class Tokenizing {
 
+    /**
+     *
+     * @param fileName
+     * @param path
+     * @param lines
+     */
     def tokenize(fileName: String, path: String, lines: String): Unit = {
 
       val tokenPath = path.concat("\\" + fileName + "T.xml")
@@ -153,14 +185,16 @@ object EX_04 {
     }
   }
 
+
+
   object main extends App {
+
     println("Enter file path:")
 
     val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath
     println("path is:\n" + path)
 
 
-    var str = ""
     refArrayOps(new File(path).listFiles).foreach {
       file => {
         if (!help.hasJackFileExtention(file.getPath)) {
