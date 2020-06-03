@@ -1,6 +1,11 @@
+package Utils
+
 object EX_04 {
 
   class Utils {
+
+
+    // ***************** Check Functions ******************** //
 
     def isIntegerConstant(x: String) = x forall Character.isDigit
 
@@ -10,28 +15,39 @@ object EX_04 {
 
     def isCommentLine(x: String) = x.matches("""^\/\/.*""")
 
-    //Function to check the type of the token
-    def getTokenType (tokenType: String):String = {
+    def hasJackFileExtention(x: String) = x.matches("^.*\\.jack$")
+
+
+    // ***************** Help Functions ******************** //
+
+
+    def getTokenType(tokenType: String): String = {
       val isKeyword = List(
-        "Class", "constructor","function","method","field","static","var","int","char","boolean","void","true","false"
-        ,"null","this","let","do","if","else","while","return")
+        "Class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false"
+        , "null", "this", "let", "do", "if", "else", "while", "return")
 
       val isSymbol = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<", ">", "=", "~")
 
-      if(isKeyword.indexOf(tokenType) >= 0)
+      if (isKeyword.indexOf(tokenType) >= 0)
         return "keyword"
-      if(isSymbol.indexOf(tokenType) >= 0)
+      if (isSymbol.indexOf(tokenType) >= 0)
         return "symbol"
-      if(isIntegerConstant(tokenType))
+      if (isIntegerConstant(tokenType))
         return "integerConstant"
-      if(isStringConstant(tokenType))
+      if (isStringConstant(tokenType))
         return "stringConstant"
-      if(isIdentifier(tokenType))
+      if (isIdentifier(tokenType))
         return "identifier"
       return ""
     }
 
-
+    def getTagContent(token: String): String = {
+      val matcher = """\<.*\>\s(.*?)\s\<.*\>""".r
+      matcher findFirstIn token match {
+        case Some(matcher(inside)) => return inside
+        case _ => return ""
+      }
+    }
 
 
   }
