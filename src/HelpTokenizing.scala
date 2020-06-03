@@ -1,5 +1,0 @@
-package helpToken
-
-class HelpTokenizing {
-
-}
