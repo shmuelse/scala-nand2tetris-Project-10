@@ -33,6 +33,11 @@ object EX_04 {
 
     // ***************** Help Functions ******************** //
 
+    /**
+     *
+     * @param tokenType
+     * @return the type of the token
+     */
     def getTokenType(tokenType: String): String = {
       val keywordList = List(
         "Class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void",
@@ -155,8 +160,6 @@ object EX_04 {
 
   }
 
-
-
   class Tokenizing {
 
     /**
@@ -184,7 +187,6 @@ object EX_04 {
       }
     }
   }
-
 
 
   object main extends App {
