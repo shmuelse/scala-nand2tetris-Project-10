@@ -5,9 +5,9 @@ import scala.io._
 object EX_04 {
 
   var indexOfToken = 0
-  var tokensList: List[String] = null
+  var tokensList: List[String] = _
 
-  var xmlWriter: java.io.PrintWriter = null
+  var xmlWriter: java.io.PrintWriter = _
   var tokenizing = new Tokenizing
   val help = new HelpFunctions
 
@@ -17,24 +17,25 @@ object EX_04 {
 
   // ***************** Check Functions ******************** //
 
-  def isIntegerConstant(x: String) = x.matches("^\\d*\\.{0,1}\\d+$")
+  def isIntegerConstant(x: String): Boolean = x.matches("^\\d*\\.{0,1}\\d+$")
 
-  def isStringConstant(x: String) = x.matches("""^\"[^\\"]*\"$""")
+  def isStringConstant(x: String): Boolean = x.matches("""^\"[^\\"]*\"$""")
 
-  def isIdentifier(x: String) = x.matches("""^[^\d][\d\w\_]*""")
+  def isIdentifier(x: String): Boolean = x.matches("""^[^\d][\d\w\_]*""")
 
-  def isCommentLine(x: String) = x.matches("""^\/\/.*""")
+  def isCommentLine(x: String): Boolean = x.matches("""^\/\/.*""")
 
-  def hasJackFileExtention(x: String) = x.matches("^.*\\.jack$")
+  def hasJackFileExtension(x: String): Boolean = x.matches("^.*\\.jack$")
 
 
   // ***************** Help Functions ******************** //
 
-  /**
-   *
-   * @param tokenType
-   * @return the type of the token
-   */
+
+    /**
+     *
+     * @param tokenType
+     * @return the type of the token: ( keyword, symbol etc..).
+     */
   def getTokenType(tokenType: String): String = {
     val keywordList = List("class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
 
@@ -50,7 +51,7 @@ object EX_04 {
       return "stringConstant"
     if (isIdentifier(tokenType))
       return "identifier"
-    return ""
+     ""
   }
 
   /**
@@ -64,7 +65,7 @@ object EX_04 {
    */
   def getContent(str: String, tokenType: String): String = {
 
-    var stringList = str;
+    var stringList = str
 
     if (tokenType == "stringConstant") {
       stringList = stringList.drop(1)
@@ -74,9 +75,9 @@ object EX_04 {
       case "<" =>  "&lt;"
       case ">" =>  "&gt;"
       case "&" =>  "&amp;"
-      case "'" => return "&apos;"
-      case """""" => return "&quot;"
-      case _ => return stringList
+      case "'" =>  "&apos;"
+      case """""" =>  "&quot;"
+      case _ =>  stringList
     }
 
   }
@@ -89,8 +90,8 @@ object EX_04 {
   def getTagContent(token: String): String = {
     val matcher = """\<.*\>\s(.*?)\s\<.*\>""".r
     matcher findFirstIn token match {
-      case Some(matcher(inside)) => return inside
-      case _ => return ""
+      case Some(matcher(inside)) =>  inside
+      case _ =>  ""
     }
   }
 
@@ -106,7 +107,7 @@ object EX_04 {
    */
   def writeXmlNode(str: String): String = {
     val tokenType: String = help.getTokenType(str)
-    return ("<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">")
+     "<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">"
   }
 
 
@@ -115,7 +116,7 @@ object EX_04 {
    *
    * @param fileName is the path and file name
    */
-  def createXMLFile(fileName: String) = {
+  def createXMLFile(fileName: String): Unit = {
 
     var isComment: Boolean = false
 
@@ -149,12 +150,12 @@ object EX_04 {
 
     println("Enter file path:")
 
-    val path :String = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + ("\\")
+    val path :String = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + "\\"
     println("path is:\n" + path)
 
     refArrayOps(new File(path).listFiles).foreach {
       file =>
-        if (help.hasJackFileExtention(file.getName)) {
+        if (help.hasJackFileExtension(file.getName)) {
 
           tokenizing.createXMLFile(path + file.getName)
         }
