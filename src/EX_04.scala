@@ -107,6 +107,7 @@ object EX_04 {
      */
     def writeFormatted(str: String): Unit = {
       xmlWriter.write("  " * indentLevel + str + "\n")
+      System.out.println("  " * indentLevel + str )
     }
 
   }
@@ -142,11 +143,12 @@ object EX_04 {
         line => {
           val items = delimiterReg findAllIn line
           items.foreach { x =>
-            if (x == "/*") isComment = true;
-            if (!isComment && x.trim != "" && !help.isCommentLine(x)) {
+            if(x == "/*") isComment = true
+
+            if(!isComment && x.trim != "" && !help.isCommentLine(x))
               writer.write(writeXmlNode(x) + "\n")
-            }
-            if (x == "*/") isComment = false
+
+            if(x == "*/") isComment = false
           }
         }
       }
