@@ -1,7 +1,5 @@
 import java.io.{File, PrintWriter}
 
-import EX_04.indexOfToken
-
 import scala.io.Source
 
 object EX_04 {
@@ -162,7 +160,7 @@ object EX_04 {
 
     val subOpenings = List("constructor", "function", "method")
     val statStarts = List("do", "while", "let", "if", "return")
-    val opList = List("+", "-", "*", "/", "&amp;" , "|" , "&lt;" , "&gt;" , "=")
+    val opList = List("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "=")
 
     /**
      *
@@ -180,8 +178,7 @@ object EX_04 {
 
         val tokenContent = help.getTagContent(tokensList(indexOfToken))
         if (tokenContent == "class")
-          classParser;
-
+          classParser()
         indexOfToken += 1
       }
     }
@@ -198,9 +195,9 @@ object EX_04 {
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
-      varDeclaration;
+      varDeclaration()
       while (tokensList(indexOfToken) != null && help.getTokenType(tokensList(indexOfToken)) == "keyword" && subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
-        subroutine;
+        subroutine()
 
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
@@ -245,38 +242,38 @@ object EX_04 {
     def subroutine(): Unit = {
 
       help.writeFormatted("<subroutineDec>")
-      indentLevel +=1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> 'constructor', 'function', or 'method' </keyword>
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> 'constructor', 'function', or 'method' </keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword>void</keyword>
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword>void</keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<identifier>main</identifier>
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier>main</identifier>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<symbol>(</symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>(</symbol>
       indexOfToken += 1
       help.writeFormatted("<parameterList>")
 
-      if (help.getTagContent(tokensList(indexOfToken))!= ")")
-        subParameters;
+      if (help.getTagContent(tokensList(indexOfToken)) != ")")
+        subParameters()
 
       help.writeFormatted("</parameterList>")
 
-      help.writeFormatted(tokensList(indexOfToken))//<symbol>)</symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>)</symbol>
       indexOfToken += 1
 
       help.writeFormatted("<subroutineBody>")
-      indentLevel +=1
-      help.writeFormatted(tokensList(indexOfToken))//<symbol>{</symbol>
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>{</symbol>
       indexOfToken += 1
 
-      varDeclaration;
-      statements;
+      varDeclaration()
+      statements()
 
-      help.writeFormatted(tokensList(indexOfToken))//<symbol>}</symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
       indexOfToken += 1
-      indentLevel -=1
+      indentLevel -= 1
       help.writeFormatted("</subroutineBody>")
-      indentLevel -=1
+      indentLevel -= 1
       help.writeFormatted("</subroutineDec>")
 
     }
@@ -284,27 +281,27 @@ object EX_04 {
     /**
      *
      */
-    def subParameters() : Unit ={
-      indentLevel +=1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> int </keyword>
+    def subParameters(): Unit = {
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<identifier> x </identifier>
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
       indexOfToken += 1
-      while(help.getTagContent(tokensList(indexOfToken))== ","){
-        subroutineParameter;
+      while (help.getTagContent(tokensList(indexOfToken)) == ",") {
+        subroutineParameter()
       }
-      indentLevel -=1
+      indentLevel -= 1
     }
 
     /**
      *
      */
-    def subroutineParameter() : Unit = {
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> int </keyword>
+    def subroutineParameter(): Unit = {
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
+      indexOfToken +=1
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<identifier> x </identifier>
-      indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<symbol>}</symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
       indexOfToken += 1
 
     }
@@ -316,8 +313,8 @@ object EX_04 {
       help.writeFormatted("<statements>")
       indentLevel += 1
 
-      while(statStarts.indexOf(help.getTagContent(tokensList(indexOfToken))) >=0 )
-        statement;
+      while (statStarts.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+        statement()
 
       indentLevel -= 1
       help.writeFormatted("</statements>")
@@ -326,43 +323,43 @@ object EX_04 {
     /**
      *
      */
-    def statement():Unit = {
+    def statement(): Unit = {
 
-      help.getTagContent(tokensList(indexOfToken))  match {
+      help.getTagContent(tokensList(indexOfToken)) match {
         case "do" =>
-          doStatement;
+          doStatement();
         case "while" =>
-          whileStatement;
+          whileStatement();
         case "if" =>
-          ifStatement;
+          ifStatement();
         case "return" =>
-          returnStatement;
+          returnStatement();
         case "let" =>
-          letStatement;
+          letStatement();
       }
     }
 
     /**
      *
      */
-    def letStatement() : Unit = {
+    def letStatement(): Unit = {
       help.writeFormatted("<letStatement>")
       indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> let </keyword>
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> let </keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> game </keyword>
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> game </keyword>
       indexOfToken += 1
-      if(help.getTagContent(tokensList(indexOfToken)) == "["){
-        help.writeFormatted(tokensList(indexOfToken))//<symbol> [ </symbol>
+      if (help.getTagContent(tokensList(indexOfToken)) == "[") {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> [ </symbol>
         indexOfToken += 1
-        expression;
-        help.writeFormatted(tokensList(indexOfToken))//<symbol> ] </symbol>
+        expression()
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ] </symbol>
         indexOfToken += 1
       }
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> = </symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> = </symbol>
       indexOfToken += 1
-      expression;
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> ; </symbol>
+      expression()
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
       indexOfToken += 1
       indentLevel -= 1
       help.writeFormatted("</letStatement>")
@@ -372,14 +369,14 @@ object EX_04 {
     /**
      *
      */
-    def returnStatement() :Unit = {
+    def returnStatement(): Unit = {
       help.writeFormatted("<returnStatement>")
       indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> return </keyword>
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> return </keyword>
       indexOfToken += 1
       if (help.getTagContent(tokensList(indexOfToken)) != ";")
-        expression;
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> ; </symbol>
+        expression()
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
       indexOfToken += 1
       indentLevel -= 1
       help.writeFormatted("</returnStatement>")
@@ -388,37 +385,172 @@ object EX_04 {
     /**
      *
      */
-    def ifStatement(){
-
+    def ifStatement(): Unit = {
 
       help.writeFormatted("<ifStatement>")
       indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken))//<keyword> if </keyword>
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> if </keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> ( </symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
       indexOfToken += 1
       expression;
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> ) </symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> { </symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
       statements;
-      help.writeFormatted(tokensList(indexOfToken))//<symbol> } </symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
-      if(help.getTagContent(tokensList(indexOfToken)) == "else"){
-        help.writeFormatted(tokensList(indexOfToken))//<keyword> if </keyword>
+      if (help.getTagContent(tokensList(indexOfToken)) == "else") {
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> if </keyword>
         indexOfToken += 1
-        help.writeFormatted(tokensList(indexOfToken))//<symbol> { </symbol>
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
         indexOfToken += 1
         statements;
-        help.writeFormatted(tokensList(indexOfToken))//<symbol> } </symbol>
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
         indexOfToken += 1
       }
       indentLevel -= 1
       help.writeFormatted("</ifStatement>")
     }
 
+    /**
+     *
+     */
+    def whileStatement(): Unit = {
+      help.writeFormatted("<whileStatement>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> while </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
+      indexOfToken += 1
+      expression()
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
+      indexOfToken += 1
+      statements()
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
+      indexOfToken += 1
+      indentLevel -= 1
+      help.writeFormatted("</whileStatement>")
+    }
 
+    /**
+     *
+     */
+    def doStatement(): Unit = {
+      help.writeFormatted("<doStatement>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> do </keyword>
+      indexOfToken += 1
+      subroutineCall()
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
+      indexOfToken += 1
+      indentLevel -= 1
+      help.writeFormatted("</doStatement>")
+    }
+
+    /**
+     *
+     */
+    def expression(): Unit = {
+      help.writeFormatted("<expression>")
+      indentLevel += 1
+      term;
+      while (opList.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> + </symbol>
+        indexOfToken += 1
+        term;
+      }
+      indentLevel -= 1
+      help.writeFormatted("</expression>")
+    }
+
+    /**
+     *
+     */
+    def subroutineCall(): Unit = {
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier>SquareGame</identifier>
+      indexOfToken += 1
+      if (help.getTagContent(tokensList(indexOfToken)) == "(") {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
+        indexOfToken += 1
+        expressionList()
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
+        indexOfToken += 1
+      }
+      else {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> . </symbol>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<identifier>SquareGame</identifier>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
+        indexOfToken += 1
+        expressionList()
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
+        indexOfToken += 1
+      }
+    }
+
+    /**
+     * recursive
+     */
+    def term(): Unit = {
+
+      help.writeFormatted("<term>")
+      indentLevel += 1
+      if (help.getTagContent(tokensList(indexOfToken)) == "(") {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
+        indexOfToken += 1
+        expression()
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
+        indexOfToken += 1
+      }
+      else if (help.getTagContent(tokensList(indexOfToken + 1)) == "[") {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> varName </symbol>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> [ </symbol>
+        indexOfToken += 1
+        expression()
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> ] </symbol>
+        indexOfToken += 1
+      }
+      else if ((help.getTagContent(tokensList(indexOfToken)) == "-") || (help.getTagContent(tokensList(indexOfToken)) == "~")) {
+        help.writeFormatted(tokensList(indexOfToken)) //<symbol> unary op </symbol>
+        indexOfToken += 1
+        term()
+      }
+      else if ((help.getTagContent(tokensList(indexOfToken + 1)) == "(") || (help.getTagContent(tokensList(indexOfToken + 1)) == ".")) {
+        subroutineCall()
+      }
+
+      else {
+        help.writeFormatted(tokensList(indexOfToken)) //<indentifier>  </indentifier>
+        indexOfToken += 1
+      }
+      indentLevel -= 1
+      help.writeFormatted("</term>")
+
+    }
+
+    /**
+     *
+     */
+    def expressionList(): Unit = {
+      help.writeFormatted("<expressionList>")
+      indentLevel += 1
+      if (help.getTagContent(tokensList(indexOfToken)) != ")") {
+        expression()
+        while (help.getTagContent(tokensList(indexOfToken)) == ",") {
+          help.writeFormatted(tokensList(indexOfToken)) //<symbol> , </symbol>
+          indexOfToken += 1
+          expression()
+        }
+      }
+      indentLevel -= 1
+      help.writeFormatted("</expressionList>")
+    }
   }
 
 
