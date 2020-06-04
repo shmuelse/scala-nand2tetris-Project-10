@@ -8,7 +8,7 @@ object EX_04 {
   var tokensList: List[String] = null
 
   var xmlWriter: java.io.PrintWriter = null
-  var xmlParser = new Tokenizing
+  var tokenizing = new Tokenizing
   val help = new HelpFunctions
 
 
@@ -157,7 +157,7 @@ object EX_04 {
       file =>
         if (help.hasJackFileExtention(file.getName)) {
 
-          xmlParser.createXMLFile(path + file.getName)
+          tokenizing.createXMLFile(path + file.getName)
         }
         else {
           println("Not A JACK File\n")
