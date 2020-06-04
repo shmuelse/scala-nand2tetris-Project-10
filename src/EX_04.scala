@@ -36,7 +36,7 @@ object EX_04 {
    * @return the type of the token
    */
   def getTokenType(tokenType: String): String = {
-    val keywordList = List("class","Class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
+    val keywordList = List("class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
 
     val symbolList = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<", ">", "=", "~")
 
@@ -71,9 +71,9 @@ object EX_04 {
       stringList = stringList.dropRight(1)
     }
     stringList match {
-      case "<" => return "&lt;"
-      case ">" => return "&gt;"
-      case "&" => return "&amp;"
+      case "<" =>  "&lt;"
+      case ">" =>  "&gt;"
+      case "&" =>  "&amp;"
       case "'" => return "&apos;"
       case """""" => return "&quot;"
       case _ => return stringList
@@ -151,7 +151,6 @@ object EX_04 {
 
     val path :String = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + ("\\")
     println("path is:\n" + path)
-
 
     refArrayOps(new File(path).listFiles).foreach {
       file =>
