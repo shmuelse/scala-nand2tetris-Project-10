@@ -5,10 +5,10 @@ import scala.io.Source
 object EX_04 {
 
   var indexOfToken = 0
-  var tokensList: List[String] = null
+  var tokensList: List[String] = _
 
   var indentLevel = 0
-  var xmlWriter: java.io.PrintWriter = null
+  var xmlWriter: java.io.PrintWriter = _
   var tokenizing = new Tokenizing
   var parsing = new Parsing
   val help = new HelpFunctions
@@ -19,15 +19,15 @@ object EX_04 {
 
     // ***************** Check Functions ******************** //
 
-    def isIntegerConstant(x: String) = x forall Character.isDigit
+    def isIntegerConstant(x: String): Boolean = x forall Character.isDigit
 
-    def isStringConstant(x: String) = x.matches("""^\"[^\\"]*\"$""")
+    def isStringConstant(x: String): Boolean = x.matches("""^\"[^\\"]*\"$""")
 
-    def isIdentifier(x: String) = x.matches("""^[^\d][\d\w\_]*""")
+    def isIdentifier(x: String): Boolean = x.matches("""^[^\d][\d\w\_]*""")
 
-    def isCommentLine(x: String) = x.matches("""^\/\/.*""")
+    def isCommentLine(x: String): Boolean = x.matches("""^\/\/.*""")
 
-    def hasJackFileExtention(x: String) = x.matches("^.*\\.jack$")
+    def hasJackFileExtention(x: String): Boolean = x.matches("^.*\\.jack$")
 
 
     // ***************** Help Functions ******************** //
@@ -35,7 +35,7 @@ object EX_04 {
     /**
      *
      * @param tokenType
-     * @return the type of the token
+     * @return the type of the token: ( keyword, symbol etc..).
      */
     def getTokenType(tokenType: String): String = {
       val keywordList = List(
@@ -55,7 +55,7 @@ object EX_04 {
         return "stringConstant"
       if (isIdentifier(tokenType))
         return "identifier"
-      return ""
+       ""
     }
 
     /**
@@ -99,7 +99,6 @@ object EX_04 {
       }
     }
 
-
     /**
      * Indents the contents of the XML file
      *
@@ -120,7 +119,7 @@ object EX_04 {
      */
     def writeXmlNode(str: String): String = {
       val tokenType: String = help.getTokenType(str)
-      return ("<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">")
+      "<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">"
     }
 
     /**
@@ -128,14 +127,14 @@ object EX_04 {
      *
      * @param fileName is the path and file name
      */
-    def createXMLFile(fileName: String) = {
+    def createXMLFile(fileName: String): Unit = {
 
       val fileNameStr:String = fileName.replace(".jack","T.xml")
       val writer = new PrintWriter(new File(fileNameStr))
 
       val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+)?""".r
 
-      var isComment: Boolean = false;
+      var isComment: Boolean = false
 
       writer.write("<tokens>" + "\n")
 
@@ -166,7 +165,7 @@ object EX_04 {
 
     /**
      *
-     * @param fileName
+     * @param fileName is the file directory path
      */
     def parser(fileName: String): Unit = {
 
@@ -230,7 +229,6 @@ object EX_04 {
           help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
           indexOfToken += 1
         }
-
         help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
         indexOfToken += 1
         indentLevel -= 1
@@ -395,12 +393,12 @@ object EX_04 {
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
       indexOfToken += 1
-      expression;
+      expression()
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
-      statements;
+      statements()
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
       if (help.getTagContent(tokensList(indexOfToken)) == "else") {
@@ -408,7 +406,7 @@ object EX_04 {
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
         indexOfToken += 1
-        statements;
+        statements()
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
         indexOfToken += 1
       }
@@ -459,11 +457,11 @@ object EX_04 {
     def expression(): Unit = {
       help.writeFormatted("<expression>")
       indentLevel += 1
-      term;
+      term()
       while (opList.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> + </symbol>
         indexOfToken += 1
-        term;
+        term()
       }
       indentLevel -= 1
       help.writeFormatted("</expression>")
@@ -561,7 +559,7 @@ object EX_04 {
 
     //Getting the file path from the user
     println("Enter file path:")
-    val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + ("\\")
+    val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + "\\"
     println("path is:\n" + path)
 
 
