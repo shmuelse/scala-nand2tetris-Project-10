@@ -1,3 +1,4 @@
+// מגישים: יונתן פרידמן 211820501, איסאיס מולה 321166894, שמואל סגל 052970464
 import java.io.{File, PrintWriter}
 
 import scala.io.Source
