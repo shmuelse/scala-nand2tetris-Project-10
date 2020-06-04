@@ -106,7 +106,6 @@ object EX_04 {
      */
     def writeFormatted(str: String): Unit = {
       xmlWriter.write("  " * indentLevel + str + "\n")
-      System.out.println("  " * indentLevel + str )
     }
 
   }
@@ -197,7 +196,7 @@ object EX_04 {
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
       classVarDeclaration()
-      while (tokensList(indexOfToken) != null /*&& help.getTokenType(tokensList(indexOfToken)) == "keyword"*/ && subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+      while (/*tokensList(indexOfToken) != null  &&*/ subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
         subroutine()
 
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
