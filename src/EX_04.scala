@@ -39,7 +39,7 @@ object EX_04 {
      */
     def getTokenType(tokenType: String): String = {
       val keywordList = List(
-        "Class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void",
+        "class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void",
         "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
 
       val symbolList = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<",
@@ -69,19 +69,19 @@ object EX_04 {
      */
     def getContent(str: String, tokenType: String): String = {
 
-      var stringList = str;
+      var stringList = str
 
       if (tokenType == "stringConstant") {
         stringList = stringList.drop(1)
         stringList = stringList.dropRight(1)
       }
       stringList match {
-        case "<" => return "&lt;"
-        case ">" => return "&gt;"
-        case "&" => return "&amp;"
-        case "'" => return "&apos;"
-        case """""" => return "&quot;"
-        case _ => return stringList
+        case "<" =>  "&lt;"
+        case ">" =>  "&gt;"
+        case "&" =>  "&amp;"
+        case "'" =>  "&apos;"
+        case """""" =>  "&quot;"
+        case _ =>  stringList
       }
 
     }
@@ -94,8 +94,8 @@ object EX_04 {
     def getTagContent(token: String): String = {
       val matcher = """\<.*\>\s(.*?)\s\<.*\>""".r
       matcher findFirstIn token match {
-        case Some(matcher(inside)) => return inside
-        case _ => return ""
+        case Some(matcher(inside)) => inside
+        case _ =>  ""
       }
     }
 
@@ -107,7 +107,6 @@ object EX_04 {
      */
     def writeFormatted(str: String): Unit = {
       xmlWriter.write("  " * indentLevel + str + "\n")
-
     }
 
   }
@@ -130,7 +129,8 @@ object EX_04 {
      */
     def createXMLFile(fileName: String) = {
 
-      val writer = new PrintWriter(new File(fileName.replace(".jack", "T.xml")))
+      val fileNameStr:String = fileName.replace(".jack","T.xml")
+      val writer = new PrintWriter(new File(fileNameStr))
 
       val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+)?""".r
 
@@ -150,7 +150,7 @@ object EX_04 {
           }
         }
       }
-      writer.write("</tokens" + "\n")
+      writer.write("</tokens>" + "\n")
       writer.close()
     }
 
@@ -298,7 +298,7 @@ object EX_04 {
      */
     def subroutineParameter(): Unit = {
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
-      indexOfToken +=1
+      indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
@@ -554,30 +554,27 @@ object EX_04 {
   }
 
 
-  object main extends App {
+  def main(args: Array[String]) {
 
+
+    //Getting the file path from the user
     println("Enter file path:")
-
-    val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath
+    val path = new java.io.File(scala.io.StdIn.readLine()).getCanonicalPath + ("\\")
     println("path is:\n" + path)
 
 
     refArrayOps(new File(path).listFiles).foreach {
       file => {
-        if (!help.hasJackFileExtention(file.getPath)) {
-          println("Not A JACK File\n")
-        }
-        else {
-          val jackFileName = file.getName
-          val fileName = jackFileName.replaceAll(".jack", ".xml")
+        if (help.hasJackFileExtention(file.getName)) {
           tokenizing.createXMLFile(path + file.getName)
-          xmlWriter = new PrintWriter(new File(path + fileName))
+          xmlWriter = new PrintWriter(new File(path + file.getName.replace(".jack,", ".mxl")))
           parsing.parser(path + file.getName)
           xmlWriter.close()
-
+        }
+        else {
+          println("Not A JACK File\n")
         }
       }
     }
   }
-
 }
