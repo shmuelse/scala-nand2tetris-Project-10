@@ -196,8 +196,8 @@ object EX_04 {
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
-      varDeclaration()
-      while (tokensList(indexOfToken) != null && help.getTokenType(tokensList(indexOfToken)) == "keyword" && subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+      classVarDeclaration()
+      while (tokensList(indexOfToken) != null /*&& help.getTokenType(tokensList(indexOfToken)) == "keyword"*/ && subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
         subroutine()
 
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
@@ -211,7 +211,7 @@ object EX_04 {
     /**
      *
      */
-    def varDeclaration(): Unit = {
+    def classVarDeclaration(): Unit = {
       while (help.getTagContent(tokensList(indexOfToken)) == "static"
         || help.getTagContent(tokensList(indexOfToken)) == "field") {
         help.writeFormatted("<classVarDec>")
@@ -297,13 +297,40 @@ object EX_04 {
      *
      */
     def subroutineParameter(): Unit = {
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> , </symbol>
+      indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
-      indexOfToken += 1
 
+    }
+
+    /**
+     *
+     */
+    def varDeclaration(): Unit = {
+      while (help.getTagContent(tokensList(indexOfToken)) == "var") {
+        help.writeFormatted("<varDec>")
+        indentLevel += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> var </keyword>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+        indexOfToken += 1
+
+        while (help.getTagContent(tokensList(indexOfToken)) == ",") {
+          help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
+          indexOfToken += 1
+          help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
+          indexOfToken += 1
+        }
+        help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
+        indexOfToken += 1
+        indentLevel -= 1
+        help.writeFormatted("</varDec>")
+      }
     }
 
     /**
@@ -402,7 +429,7 @@ object EX_04 {
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
       if (help.getTagContent(tokensList(indexOfToken)) == "else") {
-        help.writeFormatted(tokensList(indexOfToken)) //<keyword> if </keyword>
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> else </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
         indexOfToken += 1
@@ -567,7 +594,8 @@ object EX_04 {
       file => {
         if (help.hasJackFileExtention(file.getName)) {
           tokenizing.createXMLFile(path + file.getName)
-          xmlWriter = new PrintWriter(new File(path + file.getName.replace(".jack,", ".mxl")))
+          val strFileName :String = file.getName.replace(".jack",".xml")
+          xmlWriter = new PrintWriter(new File(path + strFileName))
           parsing.parser(path + file.getName)
           xmlWriter.close()
         }
