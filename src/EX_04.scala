@@ -8,7 +8,7 @@ object EX_04 {
   var tokensList: List[String] = null
 
   var xmlWriter: java.io.PrintWriter = null
-  var xmlParser = new XMLParsing
+  var xmlParser = new Tokenizing
   val help = new HelpFunctions
 
 
@@ -97,7 +97,7 @@ object EX_04 {
 
   }
 
-  class XMLParsing {
+  class Tokenizing {
 
 
   /**
