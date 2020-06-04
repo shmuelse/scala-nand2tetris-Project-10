@@ -1,5 +1,7 @@
 import java.io.{File, PrintWriter}
 
+import EX_04.indexOfToken
+
 import scala.io.Source
 
 object EX_04 {
@@ -7,12 +9,11 @@ object EX_04 {
   var indexOfToken = 0
   var tokensList: List[String] = null
 
-  var indentLevel = 1
+  var indentLevel = 0
   var xmlWriter: java.io.PrintWriter = null
-  var xmlParser = new XMLParsing
   var tokenizing = new Tokenizing
+  var parsing = new Parsing
   val help = new HelpFunctions
-
 
 
   class HelpFunctions {
@@ -113,19 +114,16 @@ object EX_04 {
 
   }
 
-  class XMLParsing {
-
+  class Tokenizing {
 
     /**
      * @param str is the var to print between thw xml contents
-     *
      * @return ready string with the type of the token for XML node
      */
     def writeXmlNode(str: String): String = {
       val tokenType: String = help.getTokenType(str)
       return ("<" + tokenType + "> " + help.getContent(str, tokenType) + " </" + tokenType + ">")
     }
-
 
     /**
      * Creates an XML file in the path the user inserted
@@ -160,32 +158,267 @@ object EX_04 {
 
   }
 
-  class Tokenizing {
+  class Parsing {
+
+    val subOpenings = List("constructor", "function", "method")
+    val statStarts = List("do", "while", "let", "if", "return")
+    val opList = List("+", "-", "*", "/", "&amp;" , "|" , "&lt;" , "&gt;" , "=")
 
     /**
      *
      * @param fileName
-     * @param path
-     * @param lines
      */
-    def tokenize(fileName: String, path: String, lines: String): Unit = {
+    def parser(fileName: String): Unit = {
 
-      val tokenPath = path.concat("\\" + fileName + "T.xml")
+      val tokenPath: String = fileName.replace(".jack", "T.xml")
       println("the new path is:\n" + tokenPath)
 
       tokensList = Source.fromFile(tokenPath).getLines().toList
       indexOfToken = 0
 
-
       while (indexOfToken < tokensList.length) {
 
-        help.writeFormatted(tokensList(indexOfToken) + ":")
-        help.writeFormatted(help.getTokenType(tokensList(indexOfToken)))
-        help.writeFormatted(help.getTagContent(tokensList(indexOfToken)))
+        val tokenContent = help.getTagContent(tokensList(indexOfToken))
+        if (tokenContent == "class")
+          classParser;
 
         indexOfToken += 1
       }
     }
+
+    /**
+     *
+     */
+    def classParser(): Unit = {
+      help.writeFormatted("<class>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<keyword> class </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier> Main </identifier>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
+      indexOfToken += 1
+      varDeclaration;
+      while (tokensList(indexOfToken) != null && help.getTokenType(tokensList(indexOfToken)) == "keyword" && subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+        subroutine;
+
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
+      indexOfToken += 1
+      indentLevel -= 1
+      help.writeFormatted("</class>")
+      indexOfToken += 1
+
+    }
+
+    /**
+     *
+     */
+    def varDeclaration(): Unit = {
+      while (help.getTagContent(tokensList(indexOfToken)) == "static"
+        || help.getTagContent(tokensList(indexOfToken)) == "field") {
+        help.writeFormatted("<classVarDec>")
+        indentLevel += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> field or static </keyword>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+        indexOfToken += 1
+
+        while (help.getTagContent(tokensList(indexOfToken)) == ",") {
+          help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
+          indexOfToken += 1
+          help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
+          indexOfToken += 1
+        }
+
+        help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
+        indexOfToken += 1
+        indentLevel -= 1
+        help.writeFormatted("</classVarDec>")
+      }
+    }
+
+    /**
+     *
+     */
+    def subroutine(): Unit = {
+
+      help.writeFormatted("<subroutineDec>")
+      indentLevel +=1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> 'constructor', 'function', or 'method' </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword>void</keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<identifier>main</identifier>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<symbol>(</symbol>
+      indexOfToken += 1
+      help.writeFormatted("<parameterList>")
+
+      if (help.getTagContent(tokensList(indexOfToken))!= ")")
+        subParameters;
+
+      help.writeFormatted("</parameterList>")
+
+      help.writeFormatted(tokensList(indexOfToken))//<symbol>)</symbol>
+      indexOfToken += 1
+
+      help.writeFormatted("<subroutineBody>")
+      indentLevel +=1
+      help.writeFormatted(tokensList(indexOfToken))//<symbol>{</symbol>
+      indexOfToken += 1
+
+      varDeclaration;
+      statements;
+
+      help.writeFormatted(tokensList(indexOfToken))//<symbol>}</symbol>
+      indexOfToken += 1
+      indentLevel -=1
+      help.writeFormatted("</subroutineBody>")
+      indentLevel -=1
+      help.writeFormatted("</subroutineDec>")
+
+    }
+
+    /**
+     *
+     */
+    def subParameters() : Unit ={
+      indentLevel +=1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> int </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<identifier> x </identifier>
+      indexOfToken += 1
+      while(help.getTagContent(tokensList(indexOfToken))== ","){
+        subroutineParameter;
+      }
+      indentLevel -=1
+    }
+
+    /**
+     *
+     */
+    def subroutineParameter() : Unit = {
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> int </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<identifier> x </identifier>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<symbol>}</symbol>
+      indexOfToken += 1
+
+    }
+
+    /**
+     *
+     */
+    def statements(): Unit = {
+      help.writeFormatted("<statements>")
+      indentLevel += 1
+
+      while(statStarts.indexOf(help.getTagContent(tokensList(indexOfToken))) >=0 )
+        statement;
+
+      indentLevel -= 1
+      help.writeFormatted("</statements>")
+    }
+
+    /**
+     *
+     */
+    def statement():Unit = {
+
+      help.getTagContent(tokensList(indexOfToken))  match {
+        case "do" =>
+          doStatement;
+        case "while" =>
+          whileStatement;
+        case "if" =>
+          ifStatement;
+        case "return" =>
+          returnStatement;
+        case "let" =>
+          letStatement;
+      }
+    }
+
+    /**
+     *
+     */
+    def letStatement() : Unit = {
+      help.writeFormatted("<letStatement>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> let </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> game </keyword>
+      indexOfToken += 1
+      if(help.getTagContent(tokensList(indexOfToken)) == "["){
+        help.writeFormatted(tokensList(indexOfToken))//<symbol> [ </symbol>
+        indexOfToken += 1
+        expression;
+        help.writeFormatted(tokensList(indexOfToken))//<symbol> ] </symbol>
+        indexOfToken += 1
+      }
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> = </symbol>
+      indexOfToken += 1
+      expression;
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> ; </symbol>
+      indexOfToken += 1
+      indentLevel -= 1
+      help.writeFormatted("</letStatement>")
+
+    }
+
+    /**
+     *
+     */
+    def returnStatement() :Unit = {
+      help.writeFormatted("<returnStatement>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> return </keyword>
+      indexOfToken += 1
+      if (help.getTagContent(tokensList(indexOfToken)) != ";")
+        expression;
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> ; </symbol>
+      indexOfToken += 1
+      indentLevel -= 1
+      help.writeFormatted("</returnStatement>")
+    }
+
+    /**
+     *
+     */
+    def ifStatement(){
+
+
+      help.writeFormatted("<ifStatement>")
+      indentLevel += 1
+      help.writeFormatted(tokensList(indexOfToken))//<keyword> if </keyword>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> ( </symbol>
+      indexOfToken += 1
+      expression;
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> ) </symbol>
+      indexOfToken += 1
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> { </symbol>
+      indexOfToken += 1
+      statements;
+      help.writeFormatted(tokensList(indexOfToken))//<symbol> } </symbol>
+      indexOfToken += 1
+      if(help.getTagContent(tokensList(indexOfToken)) == "else"){
+        help.writeFormatted(tokensList(indexOfToken))//<keyword> if </keyword>
+        indexOfToken += 1
+        help.writeFormatted(tokensList(indexOfToken))//<symbol> { </symbol>
+        indexOfToken += 1
+        statements;
+        help.writeFormatted(tokensList(indexOfToken))//<symbol> } </symbol>
+        indexOfToken += 1
+      }
+      indentLevel -= 1
+      help.writeFormatted("</ifStatement>")
+    }
+
+
   }
 
 
@@ -205,9 +438,9 @@ object EX_04 {
         else {
           val jackFileName = file.getName
           val fileName = jackFileName.replaceAll(".jack", ".xml")
-          xmlParser.createXMLFile(path + fileName)
+          tokenizing.createXMLFile(path + file.getName)
           xmlWriter = new PrintWriter(new File(path + fileName))
-          tokenizing.tokenize(file.getName, path, Source.fromFile(file.getPath).mkString)
+          parsing.parser(path + file.getName)
           xmlWriter.close()
 
         }
