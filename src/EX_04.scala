@@ -192,12 +192,12 @@ object EX_04 {
       indentLevel += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> class </keyword>
       indexOfToken += 1
-      help.writeFormatted(tokensList(indexOfToken)) //<identifier> Main </identifier>
+      help.writeFormatted(tokensList(indexOfToken)) //<identifier> className </identifier>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1
       classVarDeclaration()
-      while (/*tokensList(indexOfToken) != null  &&*/ subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+      while (subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
         subroutine()
 
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
@@ -593,7 +593,10 @@ object EX_04 {
     refArrayOps(new File(path).listFiles).foreach {
       file => {
         if (help.hasJackFileExtention(file.getName)) {
+
           tokenizing.createXMLFile(path + file.getName)
+
+
           val strFileName :String = file.getName.replace(".jack",".xml")
           xmlWriter = new PrintWriter(new File(path + strFileName))
           parsing.parser(path + file.getName)
