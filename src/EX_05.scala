@@ -1,19 +1,92 @@
 // מגישים: יונתן פרידמן 211820501, איסאיס מולה 321166894, שמואל סגל 052970464
 import java.io.{File, PrintWriter}
 
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-object EX_04 {
+object EX_05 {
 
   var indexOfToken = 0
   var tokensList: List[String] = _
 
   var indentLevel = 0
   var xmlWriter: java.io.PrintWriter = _
+  var vmWriter: java.io.PrintWriter = _
   var tokenizing = new Tokenizing
   var parsing = new Parsing
+  var translating = new JACKtoVM
   val help = new HelpFunctions
 
+
+
+  // ***************** Ex_5 ******************** //
+
+  class SymbolEntry /*(aName: String, symType: String, symSegment: String, num: Int)*/ {
+    var name = ""
+    var symbolType = ""
+    var symbolSegment = ""
+    var offset = 0
+
+    def construct (aName: String, symType: String, segment: String, num: Int) {
+      name = aName
+      symbolType = symType
+      symbolSegment = segment
+      offset = num
+    }
+
+    def getSegment: String = {
+      return symbolSegment
+    }
+
+    def getOffset: Int = {
+      return offset
+    }
+  }
+
+  class SymbolTable {
+    var table: ListBuffer[SymbolEntry] = _
+    var sym: SymbolEntry = _
+
+    def addRow(name: String, symType: String, segment: String): Unit = {
+      if(table.contains(sym.getSegment == segment)){
+        val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
+        val offset = table.apply(index).getOffset + 1
+        sym.construct(name, symType, segment, offset)
+        table.addOne(sym)
+      } else {
+        sym.construct(name, symType, segment, 0)
+      }
+    }
+
+    def clearTable(): Unit = {
+      table.clear()
+    }
+
+    def typeOf(name: String): Unit = {
+
+    }
+
+    def segmentOf(name: String): Unit = {
+
+    }
+
+    def indexOf(name: String): Unit = {
+
+    }
+
+    def varCount(segment: String): Unit = {
+
+    }
+  }
+
+  class JACKtoVM {
+    def translate(fileName: String): Unit = {
+      val xmlPath: String = fileName.replace(".jack", ".xml")
+      println("the new path is:\n" + xmlPath)
+    }
+  }
+
+  // ***************** Ex_4 ******************** //
 
   class HelpFunctions {
 
@@ -593,11 +666,21 @@ object EX_04 {
     refArrayOps(new File(path).listFiles).foreach {
       file => {
         if (help.hasJackFileExtention(file.getName)) {
+
+          // tokenizer creates T.xml file
           tokenizing.createXMLFile(path + file.getName)
-          val strFileName :String = file.getName.replace(".jack",".xml")
+
+          // parser creates .xml file
+          var strFileName :String = file.getName.replace(".jack",".xml")
           xmlWriter = new PrintWriter(new File(path + strFileName))
           parsing.parser(path + file.getName)
           xmlWriter.close()
+
+          // translator creates .vm file
+          strFileName = file.getName.replace(".jack",".vm")
+          vmWriter = new PrintWriter(new File(path + strFileName))
+          translating.translate(path + file.getName)
+          vmWriter.close()
         }
         else {
           println("Not A JACK File\n")
