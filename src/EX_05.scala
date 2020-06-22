@@ -8,6 +8,8 @@ object EX_05 {
 
   var indexOfToken = 0
   var tokensList: List[String] = _
+  var indexOfXml = 0
+  var xmlList: List[String] = _
 
   var indentLevel = 0
   var xmlWriter: java.io.PrintWriter = _
@@ -17,6 +19,8 @@ object EX_05 {
   var translating = new JACKtoVM
   val help = new HelpFunctions
 
+  var classTable: SymbolTable = _
+  var methodTable: SymbolTable = _
 
 
   // ***************** Ex_5 ******************** //
@@ -80,10 +84,68 @@ object EX_05 {
   }
 
   class JACKtoVM {
+    var someName  = ""
+    var someType = ""
+    var someSegment = ""
+
     def translate(fileName: String): Unit = {
       val xmlPath: String = fileName.replace(".jack", ".xml")
       println("the new path is:\n" + xmlPath)
+
+      xmlList = Source.fromFile(xmlPath).getLines().toList
+      indexOfXml = 0
+
+      while (indexOfXml < xmlList.length) {
+
+        val parseContent = xmlList(indexOfXml)
+        if (parseContent == "<class>")
+          classTranslate()
+        indexOfXml += 1
+      }
     }
+
+    def classTranslate(): Unit = {
+      classTable.clearTable()
+      indexOfXml += 1
+      indexOfXml += 1
+      indexOfXml += 1
+      classVarDecT()
+    }
+
+    def classVarDecT(): Unit = {
+      while (xmlList(indexOfXml) == "<classVarDec>") {
+        //<classVarDec>
+        indexOfXml += 1
+        //<keyword> field or static </keyword>
+        someSegment = help.getTagContent(xmlList(indexOfXml))
+        indexOfXml += 1
+        //<keyword> int </keyword>
+        someType = help.getTagContent(xmlList(indexOfXml))
+        indexOfXml += 1
+        //<identifier> x </identifier>
+        someName = help.getTagContent(xmlList(indexOfXml))
+        indexOfXml += 1
+        classTable.addRow(someName, someType, someSegment)
+
+        while (help.getTagContent(xmlList(indexOfXml)) == ",") {
+           // <symbol> , </symbol>
+          indexOfXml += 1
+           // <identifier> y </identifier>
+          someName = help.getTagContent(xmlList(indexOfXml))
+          indexOfXml += 1
+          classTable.addRow(someName, someType, someSegment)
+        }
+
+         // <symbol> ; </symbol>
+        indexOfXml += 1
+        //</classVarDec>
+        indexOfXml += 1
+      }
+
+      
+    }
+
+
   }
 
   // ***************** Ex_4 ******************** //
