@@ -22,6 +22,9 @@ object EX_05 {
   var classTable: SymbolTable = _
   var methodTable: SymbolTable = _
 
+  var className = ""
+  var subType = ""
+  var subName = ""
 
   // ***************** Ex_5 ******************** //
 
@@ -38,6 +41,14 @@ object EX_05 {
       offset = num
     }
 
+    def getName: String = {
+      return name
+    }
+
+    def getType: String = {
+      return symbolType
+    }
+
     def getSegment: String = {
       return symbolSegment
     }
@@ -49,16 +60,16 @@ object EX_05 {
 
   class SymbolTable {
     var table: ListBuffer[SymbolEntry] = _
-    var sym: SymbolEntry = _
+    var symbol: SymbolEntry = _
 
     def addRow(name: String, symType: String, segment: String): Unit = {
-      if(table.contains(sym.getSegment == segment)){
+      if(table.contains(symbol.getSegment == segment)){
         val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
         val offset = table.apply(index).getOffset + 1
-        sym.construct(name, symType, segment, offset)
-        table.addOne(sym)
+        symbol.construct(name, symType, segment, offset)
+        table.addOne(symbol)
       } else {
-        sym.construct(name, symType, segment, 0)
+        symbol.construct(name, symType, segment, 0)
       }
     }
 
@@ -67,22 +78,32 @@ object EX_05 {
     }
 
     def typeOf(name: String): Unit = {
-
+      val index = table.indexWhere(entry => entry.getName == name)
+      return table.apply(index).getType
     }
 
     def segmentOf(name: String): Unit = {
-
+      val index = table.indexWhere(entry => entry.getName == name)
+      return table.apply(index).getSegment
     }
 
     def indexOf(name: String): Unit = {
-
+      val index = table.indexWhere(entry => entry.getName == name)
+      return table.apply(index).getOffset
     }
 
     def varCount(segment: String): Unit = {
-
+      if(table.contains(symbol.getSegment == segment)){
+        val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
+        val offset = table.apply(index).getOffset + 1
+        return offset
+      } else {
+        return 0
+      }
     }
   }
 
+/*
   class JACKtoVM {
     var someName  = ""
     var someType = ""
@@ -142,11 +163,12 @@ object EX_05 {
         indexOfXml += 1
       }
 
-      
+
     }
 
 
   }
+*/
 
   // ***************** Ex_4 ******************** //
 
@@ -166,7 +188,7 @@ object EX_05 {
     def hasJackFileExtention(x: String): Boolean = x.matches("^.*\\.jack$")
 
 
-    // ***************** Help Functions ******************** //
+    // ***************** Help Functions - Tokenizing ******************** //
 
     /**
      *
@@ -244,6 +266,16 @@ object EX_05 {
       xmlWriter.write("  " * indentLevel + str + "\n")
     }
 
+    // ***************** Help Functions - Parsing ******************** //
+
+    def writeSubOpening(): Unit = {
+      xmlWriter.write(s"function ${className}.${subName}\n")
+      subType match {
+        case "constructor" =>
+
+      }
+    }
+
   }
 
   class Tokenizing {
@@ -293,10 +325,13 @@ object EX_05 {
   }
 
   class Parsing {
-
     val subOpenings = List("constructor", "function", "method")
     val statStarts = List("do", "while", "let", "if", "return")
     val opList = List("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "=")
+
+    var someName  = ""
+    var someType = ""
+    var someSegment = ""
 
     /**
      *
@@ -323,23 +358,32 @@ object EX_05 {
      *
      */
     def classParser(): Unit = {
-      help.writeFormatted("<class>")
+      classTable.clearTable()
+
+      /*help.writeFormatted("<class>")
       indentLevel += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> class </keyword>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> Main </identifier>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
+      indexOfToken += 1*/
+
       indexOfToken += 1
+      className = help.getTagContent(tokensList(indexOfToken))
+      indexOfToken += 1
+      indexOfToken += 1
+
+
       classVarDeclaration()
       while (/*tokensList(indexOfToken) != null  &&*/ subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
         subroutine()
 
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
+      /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
       indentLevel -= 1
       help.writeFormatted("</class>")
-      indexOfToken += 1
+      indexOfToken += 1*/
 
     }
 
@@ -349,67 +393,101 @@ object EX_05 {
     def classVarDeclaration(): Unit = {
       while (help.getTagContent(tokensList(indexOfToken)) == "static"
         || help.getTagContent(tokensList(indexOfToken)) == "field") {
-        help.writeFormatted("<classVarDec>")
+        /*help.writeFormatted("<classVarDec>")
         indentLevel += 1
         help.writeFormatted(tokensList(indexOfToken)) //<keyword> field or static </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+        indexOfToken += 1*/
+
+        //<keyword> field or static </keyword>
+        someSegment = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
+        //<keyword> int </keyword>
+        someType = help.getTagContent(tokensList(indexOfToken))
+        indexOfToken += 1
+        //<identifier> x </identifier>
+        someName = help.getTagContent(tokensList(indexOfToken))
+        indexOfToken += 1
+        classTable.addRow(someName, someType, someSegment)
+
 
         while (help.getTagContent(tokensList(indexOfToken)) == ",") {
-          help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
+          /*help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
           indexOfToken += 1
           help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
+          indexOfToken += 1*/
+
+          // <symbol> , </symbol>
           indexOfToken += 1
+          // <identifier> y </identifier>
+          someName = help.getTagContent(tokensList(indexOfToken))
+          indexOfToken += 1
+          classTable.addRow(someName, someType, someSegment)
         }
-        help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
+        //help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
         indexOfToken += 1
-        indentLevel -= 1
-        help.writeFormatted("</classVarDec>")
+        //indentLevel -= 1
+        //help.writeFormatted("</classVarDec>")
       }
+
     }
 
     /**
      *
      */
     def subroutine(): Unit = {
+      methodTable.clearTable()
 
-      help.writeFormatted("<subroutineDec>")
-      indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken)) //<keyword> 'constructor', 'function', or 'method' </keyword>
-      indexOfToken += 1
+      //help.writeFormatted("<subroutineDec>")
+      //indentLevel += 1
+      //help.writeFormatted(tokensList(indexOfToken)) //<keyword> 'constructor', 'function', or 'method' </keyword>
+      /*indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword>void</keyword>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier>main</identifier>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<symbol>(</symbol>
       indexOfToken += 1
-      help.writeFormatted("<parameterList>")
+      help.writeFormatted("<parameterList>")*/
+
+      subType = help.getTagContent(tokensList(indexOfToken))
+      indexOfToken += 1
+      indexOfToken += 1
+      indexOfToken += 1
+      indexOfToken += 1
+
+      // if the subroutine is a method - send a copy of the object to the method table
+      if(subType == "method")
+        methodTable.addRow("this", className, "argument")
 
       if (help.getTagContent(tokensList(indexOfToken)) != ")")
         subParameters()
 
-      help.writeFormatted("</parameterList>")
+      /*help.writeFormatted("</parameterList>")
 
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol>)</symbol>
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>)</symbol>*/
       indexOfToken += 1
 
-      help.writeFormatted("<subroutineBody>")
-      indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol>{</symbol>
+      //help.writeFormatted("<subroutineBody>")
+      //indentLevel += 1
+      //help.writeFormatted(tokensList(indexOfToken)) //<symbol>{</symbol>
       indexOfToken += 1
 
       varDeclaration()
+
+
+
       statements()
 
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
+      //help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
       indexOfToken += 1
-      indentLevel -= 1
+      /*indentLevel -= 1
       help.writeFormatted("</subroutineBody>")
       indentLevel -= 1
-      help.writeFormatted("</subroutineDec>")
+      help.writeFormatted("</subroutineDec>")*/
 
     }
 
@@ -417,27 +495,44 @@ object EX_05 {
      *
      */
     def subParameters(): Unit = {
-      indentLevel += 1
-      help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
+      //indentLevel += 1
+      /*help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+      indexOfToken += 1*/
+
+      someSegment = "argument"
+      someType = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      someName = help.getTagContent(tokensList(indexOfToken))
+      indexOfToken += 1
+
+      methodTable.addRow(someName, someType, someSegment)
+
       while (help.getTagContent(tokensList(indexOfToken)) == ",") {
         subroutineParameter()
       }
-      indentLevel -= 1
+      //indentLevel -= 1
     }
 
     /**
      *
      */
     def subroutineParameter(): Unit = {
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol> , </symbol>
+      /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> , </symbol>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+      indexOfToken += 1*/
+
       indexOfToken += 1
+      someType = help.getTagContent(tokensList(indexOfToken))
+      indexOfToken += 1
+      someName = help.getTagContent(tokensList(indexOfToken))
+      indexOfToken += 1
+
+      methodTable.addRow(someName, someType, someSegment)
 
     }
 
@@ -446,25 +541,40 @@ object EX_05 {
      */
     def varDeclaration(): Unit = {
       while (help.getTagContent(tokensList(indexOfToken)) == "var") {
-        help.writeFormatted("<varDec>")
+        /*help.writeFormatted("<varDec>")
         indentLevel += 1
         help.writeFormatted(tokensList(indexOfToken)) //<keyword> var </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<keyword> int </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
+        indexOfToken += 1*/
+
+        someSegment = "local"
+        indexOfToken += 1
+        someType = help.getTagContent(tokensList(indexOfToken))
+        indexOfToken += 1
+        someName = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
 
+        methodTable.addRow(someName, someType, someSegment)
+
         while (help.getTagContent(tokensList(indexOfToken)) == ",") {
-          help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
+          /*help.writeFormatted(tokensList(indexOfToken)) // <symbol> , </symbol>
           indexOfToken += 1
           help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
+          indexOfToken += 1*/
+
           indexOfToken += 1
+          someName = help.getTagContent(tokensList(indexOfToken))
+          indexOfToken += 1
+
+          methodTable.addRow(someName, someType, someSegment)
         }
-        help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
+        //help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
         indexOfToken += 1
-        indentLevel -= 1
-        help.writeFormatted("</varDec>")
+       /* indentLevel -= 1
+        help.writeFormatted("</varDec>")*/
       }
     }
 
@@ -472,14 +582,14 @@ object EX_05 {
      *
      */
     def statements(): Unit = {
-      help.writeFormatted("<statements>")
-      indentLevel += 1
+      /*help.writeFormatted("<statements>")
+      indentLevel += 1*/
 
       while (statStarts.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
         statement()
 
-      indentLevel -= 1
-      help.writeFormatted("</statements>")
+      /*indentLevel -= 1
+      help.writeFormatted("</statements>")*/
     }
 
     /**
@@ -511,6 +621,7 @@ object EX_05 {
       indexOfToken += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> game </keyword>
       indexOfToken += 1
+
       if (help.getTagContent(tokensList(indexOfToken)) == "[") {
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> [ </symbol>
         indexOfToken += 1
@@ -518,6 +629,7 @@ object EX_05 {
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> ] </symbol>
         indexOfToken += 1
       }
+
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> = </symbol>
       indexOfToken += 1
       expression()
@@ -715,6 +827,10 @@ object EX_05 {
     }
   }
 
+
+  def check(): Unit = {
+
+  }
 
   def main(args: Array[String]) {
 
