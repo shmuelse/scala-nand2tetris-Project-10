@@ -19,8 +19,8 @@ object EX_05 {
   //var translating = new JACKtoVM
   val help = new HelpFunctions
 
-  var classTable: SymbolTable = _
-  var methodTable: SymbolTable = _
+  var classTable = new SymbolTable
+  var methodTable = new SymbolTable
 
   var className = ""
   var subType = ""
@@ -60,17 +60,18 @@ object EX_05 {
   }
 
   class SymbolTable {
-    var table: ListBuffer[SymbolEntry] = _
-    var symbol: SymbolEntry = _
+    var table = new ListBuffer[SymbolEntry]
 
     def addRow(name: String, symType: String, segment: String): Unit = {
+      var symbol = new SymbolEntry
       if(table.exists(entry => entry.getSegment == segment)){
         val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
         val offset = table.apply(index).getOffset + 1
         symbol.construct(name, symType, segment, offset)
-        table.addOne(symbol)
+        table.insert(index+1, symbol)
       } else {
         symbol.construct(name, symType, segment, 0)
+        table.insert(0, symbol)
       }
     }
 
@@ -92,18 +93,30 @@ object EX_05 {
       return table.apply(index).getSegment
     }
 
-    def indexOf(name: String): Unit = {
+    def indexOf(name: String): Int = {
       val index = table.indexWhere(entry => entry.getName == name)
       return table.apply(index).getOffset
     }
 
-    def varCount(segment: String): Unit = {
+    def varCount(segment: String): Int = {
       if(table.exists(entry => entry.getSegment == segment)){
         val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
         val offset = table.apply(index).getOffset + 1
         return offset
       } else {
         return 0
+      }
+    }
+
+    def printTable(): Unit ={
+      var num = table.length
+      var i = 0
+      while(i < num) {
+        println(table.apply(i).getName)
+        println(table.apply(i).getSegment)
+        println(table.apply(i).getType)
+        println(table.apply(i).getOffset)
+        i+=1
       }
     }
   }
@@ -287,6 +300,10 @@ object EX_05 {
       }
     }
 
+    def writeTable(t: SymbolTable): Unit = {
+      t.printTable()
+    }
+
   }
 
   class Tokenizing {
@@ -370,7 +387,7 @@ object EX_05 {
      *
      */
     def classParser(): Unit = {
-      classTable.clearTable()
+      //classTable.clearTable()
 
       /*help.writeFormatted("<class>")
       indentLevel += 1
@@ -396,6 +413,8 @@ object EX_05 {
       indentLevel -= 1
       help.writeFormatted("</class>")
       indexOfToken += 1*/
+
+      help.writeTable(classTable)
 
     }
 
@@ -492,6 +511,8 @@ object EX_05 {
       varDeclaration()
 
       help.writeSubOpening() // writing the beginning of the subroutine
+
+      help.writeTable(methodTable)
 
       statements()
 
@@ -630,7 +651,6 @@ object EX_05 {
      *
      */
     def letStatement(): Unit = {
-      var endOfCode = ""
       var varName = ""
       var varSegment = ""
 
@@ -642,13 +662,14 @@ object EX_05 {
       indexOfToken += 1*/
 
       indexOfToken += 1
+      var isClass :Boolean = false
       varName = help.getTagContent(tokensList(indexOfToken))
       if(classTable.contains(varName)) {
+        isClass = true
         varSegment = classTable.segmentOf(varName)
       } else {
         varSegment = methodTable.segmentOf(varName)
       }
-      endOfCode = "pop "
       indexOfToken += 1
 
 
@@ -665,16 +686,8 @@ object EX_05 {
 
         indexOfToken += 1
 
-      } else {
-        varSegment match {
-          case "field" =>
-            endOfCode += s"this ${classTable.indexOf(varName)}\n"
-          case "static" =>
-            endOfCode += s"static ${classTable.indexOf(varName)}\n"
-          case _ =>
-            endOfCode += s"${varSegment} ${classTable.indexOf(varName)}\n"
-        }
       }
+
 
       /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> = </symbol>
       indexOfToken += 1
@@ -690,6 +703,27 @@ object EX_05 {
 
       indexOfToken += 1
 
+      if (isClass) {
+        varSegment match {
+          case "field" =>
+            codeToWrite += s"pop this ${classTable.indexOf(varName)}\n"
+          case "static" =>
+            codeToWrite += s"pop static ${classTable.indexOf(varName)}\n"
+          case _ =>
+            codeToWrite += s"pop ${varSegment} ${classTable.indexOf(varName)}\n"
+        }
+      } else {
+        varSegment match {
+          case "field" =>
+            codeToWrite += s"pop this ${methodTable.indexOf(varName)}\n"
+          case "static" =>
+            codeToWrite += s"pop static ${methodTable.indexOf(varName)}\n"
+          case _ =>
+            codeToWrite += s"pop ${varSegment} ${methodTable.indexOf(varName)}\n"
+        }
+      }
+
+      xmlWriter.write(codeToWrite)
     }
 
     /**
@@ -702,8 +736,11 @@ object EX_05 {
       indexOfToken += 1*/
       indexOfToken += 1
 
-      if (help.getTagContent(tokensList(indexOfToken)) != ";")
+      if (help.getTagContent(tokensList(indexOfToken)) != ";") {
         expression()
+      } else {
+        codeToWrite += "push constant 0\n"
+      }
 
       /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
       indexOfToken += 1
@@ -777,11 +814,13 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> do </keyword>
       indexOfToken += 1*/
 
+      //<keyword> do </keyword>
       indexOfToken += 1
 
       subroutineCall()
       codeToWrite += "pop temp 0\n"
 
+      //<symbol> ; </symbol>
       indexOfToken += 1
 
       xmlWriter.write(codeToWrite)
@@ -808,6 +847,7 @@ object EX_05 {
         val op = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
         term()
+
         op match {
           case "+" =>
             codeToWrite += "add\n"
@@ -893,7 +933,11 @@ object EX_05 {
      * recursive
      */
     def term(): Unit = {
+      var varName = ""
+      var varSegment = ""
+      var varOffset = 0
 
+      val keywordConstantList = List("true", "false", "null", "this")
       /*help.writeFormatted("<term>")
       indentLevel += 1*/
 
@@ -928,10 +972,51 @@ object EX_05 {
       else if ((help.getTagContent(tokensList(indexOfToken + 1)) == "(") || (help.getTagContent(tokensList(indexOfToken + 1)) == ".")) {
         subroutineCall()
       }
+      else if (help.isIntegerConstant(help.getTagContent(tokensList(indexOfToken)))) {
+        varName = help.getTokenType(tokensList(indexOfToken))
+
+        indexOfToken += 1
+
+        codeToWrite += s"push constant ${varName}\n"
+      }
+      else if (help.isStringConstant(help.getTagContent(tokensList(indexOfToken)))) {
+        varName = help.getTokenType(tokensList(indexOfToken))
+
+        indexOfToken += 1
+
+      }
+      else if (keywordConstantList.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
+        varName = help.getTokenType(tokensList(indexOfToken))
+        varName match {
+          case "true" =>
+            codeToWrite += "push constant 0 \n" + "not \n"
+          case "false" =>
+            codeToWrite += "push constant 0 \n"
+          case "null" =>
+            codeToWrite += "push constant 0 \n"
+          case "this" =>
+            codeToWrite += "push pointer 0 \n"
+        }
+      }
 
       else {
-        //help.writeFormatted(tokensList(indexOfToken)) //<indentifier>  </indentifier>
+        //help.writeFormatted(tokensList(indexOfToken)) //<identifier>  </identifier>
+
+        //<identifier>  </identifier>
+        var isClass :Boolean = false
+        varName = help.getTagContent(tokensList(indexOfToken))
+        if(classTable.contains(varName)) {
+          isClass = true
+          varSegment = classTable.segmentOf(varName)
+          varOffset = classTable.indexOf(varName)
+        } else {
+          varSegment = methodTable.segmentOf(varName)
+          varOffset = methodTable.indexOf(varName)
+        }
+
         indexOfToken += 1
+
+        codeToWrite += s"push ${varSegment} ${varOffset}\n"
       }
       /*indentLevel -= 1
       help.writeFormatted("</term>")*/
