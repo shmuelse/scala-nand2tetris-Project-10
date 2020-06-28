@@ -398,9 +398,12 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
       indexOfToken += 1*/
 
+      //<keyword> class </keyword>
       indexOfToken += 1
+      //<identifier> Main </identifier>
       className = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      //<symbol> { </symbol>
       indexOfToken += 1
 
 
@@ -413,6 +416,11 @@ object EX_05 {
       indentLevel -= 1
       help.writeFormatted("</class>")
       indexOfToken += 1*/
+
+      //<symbol> } </symbol>
+      indexOfToken += 1
+      indexOfToken += 1
+
 
       help.writeTable(classTable)
 
@@ -459,9 +467,12 @@ object EX_05 {
           classTable.addRow(someName, someType, someSegment)
         }
         //help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
-        indexOfToken += 1
+        //indexOfToken += 1
         //indentLevel -= 1
         //help.writeFormatted("</classVarDec>")
+
+        //<symbol> ; </symbol>
+        indexOfToken += 1
       }
 
     }
@@ -484,11 +495,15 @@ object EX_05 {
       indexOfToken += 1
       help.writeFormatted("<parameterList>")*/
 
+      //<keyword> 'constructor', 'function', or 'method' </keyword>
       subType = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      //<keyword>void</keyword>
       indexOfToken += 1
+      //<identifier>main</identifier>
       subName = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      //<symbol>(</symbol>
       indexOfToken += 1
 
       // if the subroutine is a method - send a copy of the object to the method table
@@ -500,12 +515,18 @@ object EX_05 {
 
       /*help.writeFormatted("</parameterList>")
 
-      help.writeFormatted(tokensList(indexOfToken)) //<symbol>)</symbol>*/
+      help.writeFormatted(tokensList(indexOfToken)) //<symbol>)</symbol>
+      indexOfToken += 1*/
+
+      //<symbol>)</symbol>
       indexOfToken += 1
 
       //help.writeFormatted("<subroutineBody>")
       //indentLevel += 1
       //help.writeFormatted(tokensList(indexOfToken)) //<symbol>{</symbol>
+      //indexOfToken += 1
+
+      //<symbol> { </symbol>
       indexOfToken += 1
 
       varDeclaration()
@@ -517,12 +538,14 @@ object EX_05 {
       statements()
 
       //help.writeFormatted(tokensList(indexOfToken)) //<symbol>}</symbol>
-      indexOfToken += 1
+      //indexOfToken += 1
       /*indentLevel -= 1
       help.writeFormatted("</subroutineBody>")
       indentLevel -= 1
       help.writeFormatted("</subroutineDec>")*/
 
+      //<symbol> } </symbol>
+      indexOfToken += 1
     }
 
     /**
@@ -536,8 +559,10 @@ object EX_05 {
       indexOfToken += 1*/
 
       someSegment = "argument"
+      //<keyword> int </keyword>
       someType = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      //<identifier> x </identifier>
       someName = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
 
@@ -560,9 +585,12 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
       indexOfToken += 1*/
 
+      //<symbol> , </symbol>
       indexOfToken += 1
+      //<keyword> int </keyword>
       someType = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
+      //<identifier> x </identifier>
       someName = help.getTagContent(tokensList(indexOfToken))
       indexOfToken += 1
 
@@ -584,10 +612,13 @@ object EX_05 {
         help.writeFormatted(tokensList(indexOfToken)) //<identifier> x </identifier>
         indexOfToken += 1*/
 
+        //<keyword> var </keyword>
         someSegment = "local"
         indexOfToken += 1
+        //<keyword> int </keyword>
         someType = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
+        //<identifier> x </identifier>
         someName = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
 
@@ -599,16 +630,21 @@ object EX_05 {
           help.writeFormatted(tokensList(indexOfToken)) // <identifier> y </identifier>
           indexOfToken += 1*/
 
+          // <symbol> , </symbol>
           indexOfToken += 1
+          // <identifier> y </identifier>
           someName = help.getTagContent(tokensList(indexOfToken))
           indexOfToken += 1
 
           methodTable.addRow(someName, someType, someSegment)
         }
         //help.writeFormatted(tokensList(indexOfToken)) // <symbol> ; </symbol>
-        indexOfToken += 1
+        //indexOfToken += 1
        /* indentLevel -= 1
         help.writeFormatted("</varDec>")*/
+
+        // <symbol> ; </symbol>
+        indexOfToken += 1
       }
     }
 
@@ -661,7 +697,9 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> game </keyword>
       indexOfToken += 1*/
 
+      //<keyword> let </keyword>
       indexOfToken += 1
+
       var isClass :Boolean = false
       varName = help.getTagContent(tokensList(indexOfToken))
       if(classTable.contains(varName)) {
@@ -670,6 +708,8 @@ object EX_05 {
       } else {
         varSegment = methodTable.segmentOf(varName)
       }
+
+      //<keyword> game </keyword>
       indexOfToken += 1
 
 
@@ -680,16 +720,50 @@ object EX_05 {
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> ] </symbol>
         indexOfToken += 1*/
 
+        //<symbol> [ </symbol>
         indexOfToken += 1
 
         expression()
+        if (isClass) {
+          varSegment match {
+            case "field" =>
+              codeToWrite += s"push this ${classTable.indexOf(varName)}\n"
+            case "static" =>
+              codeToWrite += s"push static ${classTable.indexOf(varName)}\n"
+            case _ =>
+              codeToWrite += s"push ${varSegment} ${classTable.indexOf(varName)}\n"
+          }
+        }
+        else {
+          varSegment match {
+            case "field" =>
+              codeToWrite += s"push this ${methodTable.indexOf(varName)}\n"
+            case "static" =>
+              codeToWrite += s"push static ${methodTable.indexOf(varName)}\n"
+            case _ =>
+              codeToWrite += s"push ${varSegment} ${methodTable.indexOf(varName)}\n"
+          }
+        }
+        codeToWrite += "add\n"
 
+        //<symbol> ] </symbol>
+        indexOfToken += 1
+
+        //<symbol> = </symbol>
+        indexOfToken += 1
+
+        expression()
+        codeToWrite += "pop temp 0\n" +
+          "pop pointer 1\n" +
+          "push temp 0\n" +
+          "pop that 0\n"
+
+        //<symbol> ; </symbol>
         indexOfToken += 1
 
       }
-
-
-      /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> = </symbol>
+      else {
+        /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> = </symbol>
       indexOfToken += 1
       expression()
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
@@ -697,29 +771,32 @@ object EX_05 {
       indentLevel -= 1
       help.writeFormatted("</letStatement>")*/
 
-      indexOfToken += 1
+        //<symbol> = </symbol>
+        indexOfToken += 1
 
-      expression()
+        expression()
 
-      indexOfToken += 1
+        //<symbol> ; </symbol>
+        indexOfToken += 1
 
-      if (isClass) {
-        varSegment match {
-          case "field" =>
-            codeToWrite += s"pop this ${classTable.indexOf(varName)}\n"
-          case "static" =>
-            codeToWrite += s"pop static ${classTable.indexOf(varName)}\n"
-          case _ =>
-            codeToWrite += s"pop ${varSegment} ${classTable.indexOf(varName)}\n"
-        }
-      } else {
-        varSegment match {
-          case "field" =>
-            codeToWrite += s"pop this ${methodTable.indexOf(varName)}\n"
-          case "static" =>
-            codeToWrite += s"pop static ${methodTable.indexOf(varName)}\n"
-          case _ =>
-            codeToWrite += s"pop ${varSegment} ${methodTable.indexOf(varName)}\n"
+        if (isClass) {
+          varSegment match {
+            case "field" =>
+              codeToWrite += s"pop this ${classTable.indexOf(varName)}\n"
+            case "static" =>
+              codeToWrite += s"pop static ${classTable.indexOf(varName)}\n"
+            case _ =>
+              codeToWrite += s"pop ${varSegment} ${classTable.indexOf(varName)}\n"
+          }
+        } else {
+          varSegment match {
+            case "field" =>
+              codeToWrite += s"pop this ${methodTable.indexOf(varName)}\n"
+            case "static" =>
+              codeToWrite += s"pop static ${methodTable.indexOf(varName)}\n"
+            case _ =>
+              codeToWrite += s"pop ${varSegment} ${methodTable.indexOf(varName)}\n"
+          }
         }
       }
 
@@ -734,6 +811,8 @@ object EX_05 {
       indentLevel += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> return </keyword>
       indexOfToken += 1*/
+
+      //<keyword> return </keyword>
       indexOfToken += 1
 
       if (help.getTagContent(tokensList(indexOfToken)) != ";") {
@@ -746,8 +825,11 @@ object EX_05 {
       indexOfToken += 1
       indentLevel -= 1
       help.writeFormatted("</returnStatement>")*/
+
       codeToWrite += "return\n"
+      //<symbol> ; </symbol>
       indexOfToken += 1
+
       xmlWriter.write(codeToWrite)
     }
 
@@ -844,6 +926,7 @@ object EX_05 {
         indexOfToken += 1
         term()*/
 
+        //<symbol> + </symbol>
         val op = help.getTagContent(tokensList(indexOfToken))
         indexOfToken += 1
         term()
@@ -892,8 +975,13 @@ object EX_05 {
         indexOfToken += 1*/
 
         codeToWrite += "push pointer 0\n"
+
+        //<symbol> ( </symbol>
         indexOfToken += 1
+
         numOfExp = expressionList() + 1
+
+        //<symbol> ) </symbol>
         indexOfToken += 1
         codeToWrite += s"call ${className}.${subCall} ${numOfExp}\n"
 
@@ -909,21 +997,28 @@ object EX_05 {
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
         indexOfToken += 1*/
 
+        //<symbol> . </symbol>
         indexOfToken += 1
+
         val subCallType = subCall
         subCall = help.getTagContent(tokensList(indexOfToken))
+
+        //<identifier> SquareGame </identifier>
         indexOfToken += 1
 
         if(methodTable.contains(subCallType)){
           codeToWrite += s"push ${methodTable.segmentOf(subCallType)} ${methodTable.indexOf(subCallType)}\n" // push local 0
           numOfExp = 1
-        } else if(subType == "method" && classTable.contains(subCallType)) {
+        } else if(subType == "method" && (classTable.contains(subCallType) || (methodTable.contains(subCallType)))) {
           codeToWrite += s"push ${classTable.segmentOf(subCallType)} ${classTable.indexOf(subCallType)}\n" // push local 0
           numOfExp = 1
         }
 
+        //<symbol> ( </symbol>
         indexOfToken += 1
         numOfExp += expressionList()
+
+        //<symbol> ) </symbol>
         indexOfToken += 1
         codeToWrite += s"call ${subCallType}.${subCall} ${numOfExp}\n"
       }
@@ -943,23 +1038,54 @@ object EX_05 {
 
       if (help.getTagContent(tokensList(indexOfToken)) == "(") {
         //help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
-        indexOfToken += 1
+        /*indexOfToken += 1
         expression()
         //help.writeFormatted(tokensList(indexOfToken)) //<symbol> ) </symbol>
+        indexOfToken += 1*/
+
+        //<symbol> ( </symbol>
+        indexOfToken += 1
+        expression()
+
+        //<symbol> ) </symbol>
         indexOfToken += 1
       }
       else if (help.getTagContent(tokensList(indexOfToken + 1)) == "[") {
-        help.writeFormatted(tokensList(indexOfToken)) //<symbol> varName </symbol>
+        /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> varName </symbol>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> [ </symbol>
         indexOfToken += 1
         expression()
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> ] </symbol>
+        indexOfToken += 1*/
+
+        varName = help.getTagContent(tokensList(indexOfToken))
+        if(classTable.contains(varName)) {
+          varSegment = classTable.segmentOf(varName)
+          varOffset = classTable.indexOf(varName)
+        } else {
+          varSegment = methodTable.segmentOf(varName)
+          varOffset = methodTable.indexOf(varName)
+        }
+
+        //<symbol> varName </symbol>
+        indexOfToken += 1
+        //<symbol> [ </symbol>
+        indexOfToken += 1
+        expression()
+        codeToWrite += s"push ${varSegment} ${varOffset}\n" +
+          "add\n" +
+          "pop pointer 1\n" +
+          "push that 0\n"
+
+        //<symbol> ] </symbol>
         indexOfToken += 1
       }
       else if ((help.getTagContent(tokensList(indexOfToken)) == "-") || (help.getTagContent(tokensList(indexOfToken)) == "~")) {
-        help.writeFormatted(tokensList(indexOfToken)) //<symbol> unary op </symbol>
+        //help.writeFormatted(tokensList(indexOfToken)) //<symbol> unary op </symbol>
+
         val op = help.getTagContent(tokensList(indexOfToken))
+        //<symbol> unary op </symbol>
         indexOfToken += 1
         term()
         op match {
@@ -975,21 +1101,31 @@ object EX_05 {
       else if (help.isIntegerConstant(help.getTagContent(tokensList(indexOfToken)))) {
         varName = help.getTokenType(tokensList(indexOfToken))
 
+        //<IntegerConstant> integerConstant </IntegerConstant>
         indexOfToken += 1
 
         codeToWrite += s"push constant ${varName}\n"
       }
       else if (help.isStringConstant(help.getTagContent(tokensList(indexOfToken)))) {
-        varName = help.getTokenType(tokensList(indexOfToken))
+        val varString = help.getTokenType(tokensList(indexOfToken)).map(_.toByte)
+        val num = varString.length
 
+        codeToWrite += s"push constant ${num}\n" +
+          "call String.new 1\n"
+        varString.foreach { x =>
+          codeToWrite += s"push constant ${x}\n" +
+            "call String.appendChar 2\n"
+        }
+
+        //<StringConstant> string </StringConstant>
         indexOfToken += 1
-
       }
       else if (keywordConstantList.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
         varName = help.getTokenType(tokensList(indexOfToken))
         varName match {
           case "true" =>
-            codeToWrite += "push constant 0 \n" + "not \n"
+            codeToWrite += "push constant 0 \n" +
+              "not \n"
           case "false" =>
             codeToWrite += "push constant 0 \n"
           case "null" =>
@@ -997,16 +1133,14 @@ object EX_05 {
           case "this" =>
             codeToWrite += "push pointer 0 \n"
         }
+        indexOfToken += 1
       }
-
       else {
         //help.writeFormatted(tokensList(indexOfToken)) //<identifier>  </identifier>
 
         //<identifier>  </identifier>
-        var isClass :Boolean = false
         varName = help.getTagContent(tokensList(indexOfToken))
         if(classTable.contains(varName)) {
-          isClass = true
           varSegment = classTable.segmentOf(varName)
           varOffset = classTable.indexOf(varName)
         } else {
@@ -1037,6 +1171,7 @@ object EX_05 {
         while (help.getTagContent(tokensList(indexOfToken)) == ",") {
           //help.writeFormatted(tokensList(indexOfToken)) //<symbol> , </symbol>
 
+          //<symbol> , </symbol>
           indexOfToken += 1
           numOfExp += 1
           expression()
