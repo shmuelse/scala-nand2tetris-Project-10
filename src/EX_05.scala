@@ -268,7 +268,7 @@ object EX_05 {
      * @return
      */
     def getTagContent(token: String): String = {
-      val matcher = """\<.*\>\s(.*?)\s\<.*\>""".r
+      val matcher = """\<.*\>\s(.*?)\s<.*>""".r
       matcher findFirstIn token match {
         case Some(matcher(inside)) => inside
         case _ =>  ""
@@ -304,6 +304,13 @@ object EX_05 {
       t.printTable()
     }
 
+    def getTag(token: String): String = {
+      val matcher = """\<.*?\>\s(.*)\s\<.*?\>""".r
+      matcher findFirstIn  token match {
+        case Some(matcher(outside)) => outside
+        case _ =>  ""
+      }
+    }
   }
 
   class Tokenizing {
@@ -361,6 +368,8 @@ object EX_05 {
     var someType = ""
     var someSegment = ""
 
+    var IfLabel = 0
+    var WhileLabel = 0
     var codeToWrite =""
     /**
      *
@@ -801,6 +810,7 @@ object EX_05 {
       }
 
       xmlWriter.write(codeToWrite)
+      codeToWrite = ""
     }
 
     /**
@@ -831,6 +841,7 @@ object EX_05 {
       indexOfToken += 1
 
       xmlWriter.write(codeToWrite)
+      codeToWrite = ""
     }
 
     /**
@@ -838,7 +849,7 @@ object EX_05 {
      */
     def ifStatement(): Unit = {
 
-      help.writeFormatted("<ifStatement>")
+      /*help.writeFormatted("<ifStatement>")
       indentLevel += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> if </keyword>
       indexOfToken += 1
@@ -851,25 +862,64 @@ object EX_05 {
       indexOfToken += 1
       statements()
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
+      indexOfToken += 1*/
+
       indexOfToken += 1
+      indexOfToken += 1
+      expression()
+
+      codeToWrite += s"if-goto IF_TRUE${IfLabel}\n" +
+        s"goto IF_FALSE${IfLabel}\n" +
+        s"label IF_TRUE${IfLabel}\n"
+      xmlWriter.write(codeToWrite)
+      codeToWrite = ""
+
+      indexOfToken += 1
+      indexOfToken += 1
+      IfLabel += 1
+      statements()
+      indexOfToken += 1
+
       if (help.getTagContent(tokensList(indexOfToken)) == "else") {
-        help.writeFormatted(tokensList(indexOfToken)) //<keyword> else </keyword>
+        /*help.writeFormatted(tokensList(indexOfToken)) //<keyword> else </keyword>
         indexOfToken += 1
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> { </symbol>
         indexOfToken += 1
         statements()
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
+        indexOfToken += 1*/
+        IfLabel -= 1
+        codeToWrite += s"goto IF_END${IfLabel}\n" +
+          s"label IF_FALSE${IfLabel}\n"
+        IfLabel += 1
+
+        xmlWriter.write(codeToWrite)
+        codeToWrite = ""
+
         indexOfToken += 1
+        indexOfToken += 1
+        IfLabel += 1
+        statements()
+        indexOfToken += 1
+
+        IfLabel -= 2
+        codeToWrite += s"label IF_END${IfLabel}\n"
+      } else {
+        IfLabel -= 1
+        codeToWrite += s"label IF_FALSE${IfLabel}\n"
       }
-      indentLevel -= 1
-      help.writeFormatted("</ifStatement>")
+      /*indentLevel -= 1
+      help.writeFormatted("</ifStatement>")*/
+
+      xmlWriter.write(codeToWrite)
+      codeToWrite = ""
     }
 
     /**
      *
      */
     def whileStatement(): Unit = {
-      help.writeFormatted("<whileStatement>")
+      /*help.writeFormatted("<whileStatement>")
       indentLevel += 1
       help.writeFormatted(tokensList(indexOfToken)) //<keyword> while </keyword>
       indexOfToken += 1
@@ -884,7 +934,18 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
       indentLevel -= 1
-      help.writeFormatted("</whileStatement>")
+      help.writeFormatted("</whileStatement>")*/
+
+      indexOfToken += 1
+      indexOfToken += 1
+      expression()
+      indexOfToken += 1
+      indexOfToken += 1
+      statements()
+      indexOfToken += 1
+
+      xmlWriter.write(codeToWrite)
+      codeToWrite = ""
     }
 
     /**
@@ -906,10 +967,11 @@ object EX_05 {
       indexOfToken += 1
 
       xmlWriter.write(codeToWrite)
+      codeToWrite = ""
       /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> ; </symbol>
-      indexOfToken += 1
-      indentLevel -= 1
-      help.writeFormatted("</doStatement>")*/
+            indexOfToken += 1
+            indentLevel -= 1
+            help.writeFormatted("</doStatement>")*/
     }
 
     /**
@@ -1036,6 +1098,11 @@ object EX_05 {
       /*help.writeFormatted("<term>")
       indentLevel += 1*/
 
+      /*var b = help.getTagContent(tokensList(indexOfToken))
+      var c = help.getTokenType(b)
+      var d = help.isStringConstant(b)
+      var e = (tokensList(indexOfToken)).startsWith("<stringConstant>")*/
+
       if (help.getTagContent(tokensList(indexOfToken)) == "(") {
         //help.writeFormatted(tokensList(indexOfToken)) //<symbol> ( </symbol>
         /*indexOfToken += 1
@@ -1099,15 +1166,15 @@ object EX_05 {
         subroutineCall()
       }
       else if (help.isIntegerConstant(help.getTagContent(tokensList(indexOfToken)))) {
-        varName = help.getTokenType(tokensList(indexOfToken))
+        varName = help.getTagContent(tokensList(indexOfToken))
 
         //<IntegerConstant> integerConstant </IntegerConstant>
         indexOfToken += 1
 
         codeToWrite += s"push constant ${varName}\n"
       }
-      else if (help.isStringConstant(help.getTagContent(tokensList(indexOfToken)))) {
-        val varString = help.getTokenType(tokensList(indexOfToken)).map(_.toByte)
+      else if (tokensList(indexOfToken).startsWith("<stringConstant>")) {
+        val varString = help.getTagContent(tokensList(indexOfToken)).map(_.toByte)
         val num = varString.length
 
         codeToWrite += s"push constant ${num}\n" +
@@ -1121,7 +1188,7 @@ object EX_05 {
         indexOfToken += 1
       }
       else if (keywordConstantList.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
-        varName = help.getTokenType(tokensList(indexOfToken))
+        varName = help.getTagContent(tokensList(indexOfToken))
         varName match {
           case "true" =>
             codeToWrite += "push constant 0 \n" +
@@ -1150,6 +1217,9 @@ object EX_05 {
 
         indexOfToken += 1
 
+        if(varSegment == "field") {
+          varSegment = "this"
+        }
         codeToWrite += s"push ${varSegment} ${varOffset}\n"
       }
       /*indentLevel -= 1
