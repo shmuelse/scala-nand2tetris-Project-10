@@ -44,7 +44,7 @@ object EX_04 {
         "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
 
       val symbolList = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<",
-        ">", "=", "~")
+        ">", "=", "~", "|")
 
       if (keywordList.indexOf(tokenType) >= 0)
         return "keyword"
@@ -132,7 +132,7 @@ object EX_04 {
       val fileNameStr:String = fileName.replace(".jack","T.xml")
       val writer = new PrintWriter(new File(fileNameStr))
 
-      val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+)?""".r
+      val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+|\|)?""".r
 
       var isComment: Boolean = false
 
