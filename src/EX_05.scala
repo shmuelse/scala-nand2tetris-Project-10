@@ -63,14 +63,17 @@ object EX_05 {
     var table = new ListBuffer[SymbolEntry]
 
     def addRow(name: String, symType: String, segment: String): Unit = {
-      var symbol = new SymbolEntry
-      if(table.exists(entry => entry.getSegment == segment)){
-        val index = table.lastIndexWhere((entry) => entry.getSegment == segment)
+      val symbol = new SymbolEntry
+      var aSegment = segment
+      if (segment == "field")
+        aSegment = "this"
+      if(table.exists(entry => entry.getSegment == aSegment)){
+        val index = table.lastIndexWhere((entry) => entry.getSegment == aSegment)
         val offset = table.apply(index).getOffset + 1
-        symbol.construct(name, symType, segment, offset)
+        symbol.construct(name, symType, aSegment, offset)
         table.insert(index+1, symbol)
       } else {
-        symbol.construct(name, symType, segment, 0)
+        symbol.construct(name, symType, aSegment, 0)
         table.insert(0, symbol)
       }
     }
@@ -219,7 +222,7 @@ object EX_05 {
         "true", "false", "null", "this", "let", "do", "if", "else", "while", "return")
 
       val symbolList = List("{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "", "", "<",
-        ">", "=", "~")
+        ">", "=", "~", "|")
 
       if (keywordList.indexOf(tokenType) >= 0)
         return "keyword"
@@ -290,7 +293,7 @@ object EX_05 {
       xmlWriter.write(s"function ${className}.${subName} ${methodTable.varCount("local")}\n")
       subType match {
         case "constructor" =>
-          xmlWriter.write(s"push constant ${classTable.varCount("field")}\n" +
+          xmlWriter.write(s"push constant ${classTable.varCount("this")}\n" +
             "call Memory.alloc 1\n" +
             "pop pointer 0\n")
         case "method" =>
@@ -304,13 +307,13 @@ object EX_05 {
       t.printTable()
     }
 
-    def getTag(token: String): String = {
+    /*def getTag(token: String): String = {
       val matcher = """\<.*?\>\s(.*)\s\<.*?\>""".r
       matcher findFirstIn  token match {
         case Some(matcher(outside)) => outside
         case _ =>  ""
       }
-    }
+    }*/
   }
 
   class Tokenizing {
@@ -334,7 +337,7 @@ object EX_05 {
       val fileNameStr:String = fileName.replace(".jack","T.xml")
       val writer = new PrintWriter(new File(fileNameStr))
 
-      val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+)?""".r
+      val delimiterReg = """(?:\/\/.*|\/\*|\*\/|\<|\>|\.|#|&|\,|:|\*|\(|\)|=|\{|\}|\(|\)|\[|\]|\.|\;|\+|\-|\*|\/|\&|\|\|\=|\~|\"[^\"]*\"|\d+\.{0,1}\d*|\s|\n|\w+|\|)?""".r
 
       var isComment: Boolean = false
 
@@ -396,7 +399,7 @@ object EX_05 {
      *
      */
     def classParser(): Unit = {
-      //classTable.clearTable()
+      classTable.clearTable()
 
       /*help.writeFormatted("<class>")
       indentLevel += 1
@@ -417,8 +420,10 @@ object EX_05 {
 
 
       classVarDeclaration()
-      while (/*tokensList(indexOfToken) != null  &&*/ subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0)
+      while (/*tokensList(indexOfToken) != null  &&*/ subOpenings.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
+        IfLabel = 0
         subroutine()
+      }
 
       /*help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1
@@ -666,7 +671,7 @@ object EX_05 {
 
       while (statStarts.indexOf(help.getTagContent(tokensList(indexOfToken))) >= 0) {
         codeToWrite = ""
-        statement()
+        statement(IfLabel)
       }
 
       /*indentLevel -= 1
@@ -676,7 +681,7 @@ object EX_05 {
     /**
      *
      */
-    def statement(): Unit = {
+    def statement(numIfLabel: Int): Unit = {
 
       help.getTagContent(tokensList(indexOfToken)) match {
         case "do" =>
@@ -684,7 +689,7 @@ object EX_05 {
         case "while" =>
           whileStatement();
         case "if" =>
-          ifStatement();
+          ifStatement(numIfLabel);
         case "return" =>
           returnStatement();
         case "let" =>
@@ -734,24 +739,26 @@ object EX_05 {
 
         expression()
         if (isClass) {
-          varSegment match {
+          /*varSegment match {
             case "field" =>
               codeToWrite += s"push this ${classTable.indexOf(varName)}\n"
             case "static" =>
               codeToWrite += s"push static ${classTable.indexOf(varName)}\n"
             case _ =>
               codeToWrite += s"push ${varSegment} ${classTable.indexOf(varName)}\n"
-          }
+          }*/
+          codeToWrite += s"push ${varSegment} ${classTable.indexOf(varName)}\n"
         }
         else {
-          varSegment match {
+          /*varSegment match {
             case "field" =>
               codeToWrite += s"push this ${methodTable.indexOf(varName)}\n"
             case "static" =>
               codeToWrite += s"push static ${methodTable.indexOf(varName)}\n"
             case _ =>
               codeToWrite += s"push ${varSegment} ${methodTable.indexOf(varName)}\n"
-          }
+          }*/
+          codeToWrite += s"push ${varSegment} ${methodTable.indexOf(varName)}\n"
         }
         codeToWrite += "add\n"
 
@@ -789,23 +796,25 @@ object EX_05 {
         indexOfToken += 1
 
         if (isClass) {
-          varSegment match {
+          /*varSegment match {
             case "field" =>
               codeToWrite += s"pop this ${classTable.indexOf(varName)}\n"
             case "static" =>
               codeToWrite += s"pop static ${classTable.indexOf(varName)}\n"
             case _ =>
               codeToWrite += s"pop ${varSegment} ${classTable.indexOf(varName)}\n"
-          }
+          }*/
+          codeToWrite += s"pop ${varSegment} ${classTable.indexOf(varName)}\n"
         } else {
-          varSegment match {
+          /*varSegment match {
             case "field" =>
               codeToWrite += s"pop this ${methodTable.indexOf(varName)}\n"
             case "static" =>
               codeToWrite += s"pop static ${methodTable.indexOf(varName)}\n"
             case _ =>
               codeToWrite += s"pop ${varSegment} ${methodTable.indexOf(varName)}\n"
-          }
+          }*/
+          codeToWrite += s"pop ${varSegment} ${methodTable.indexOf(varName)}\n"
         }
       }
 
@@ -847,7 +856,7 @@ object EX_05 {
     /**
      *
      */
-    def ifStatement(): Unit = {
+    def ifStatement(numIfLabel: Int): Unit = {
 
       /*help.writeFormatted("<ifStatement>")
       indentLevel += 1
@@ -864,13 +873,14 @@ object EX_05 {
       help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
       indexOfToken += 1*/
 
+
       indexOfToken += 1
       indexOfToken += 1
       expression()
 
-      codeToWrite += s"if-goto IF_TRUE${IfLabel}\n" +
-        s"goto IF_FALSE${IfLabel}\n" +
-        s"label IF_TRUE${IfLabel}\n"
+      codeToWrite += s"if-goto IF_TRUE${numIfLabel}\n" +
+        s"goto IF_FALSE${numIfLabel}\n" +
+        s"label IF_TRUE${numIfLabel}\n"
       xmlWriter.write(codeToWrite)
       codeToWrite = ""
 
@@ -888,25 +898,21 @@ object EX_05 {
         statements()
         help.writeFormatted(tokensList(indexOfToken)) //<symbol> } </symbol>
         indexOfToken += 1*/
-        IfLabel -= 1
-        codeToWrite += s"goto IF_END${IfLabel}\n" +
-          s"label IF_FALSE${IfLabel}\n"
-        IfLabel += 1
+        codeToWrite += s"goto IF_END${numIfLabel}\n" +
+          s"label IF_FALSE${numIfLabel}\n"
 
         xmlWriter.write(codeToWrite)
         codeToWrite = ""
 
         indexOfToken += 1
         indexOfToken += 1
-        IfLabel += 1
+        //IfLabel += 1
         statements()
         indexOfToken += 1
 
-        IfLabel -= 2
-        codeToWrite += s"label IF_END${IfLabel}\n"
+        codeToWrite += s"label IF_END${numIfLabel}\n"
       } else {
-        IfLabel -= 1
-        codeToWrite += s"label IF_FALSE${IfLabel}\n"
+        codeToWrite += s"label IF_FALSE${numIfLabel}\n"
       }
       /*indentLevel -= 1
       help.writeFormatted("</ifStatement>")*/
@@ -1062,7 +1068,7 @@ object EX_05 {
         //<symbol> . </symbol>
         indexOfToken += 1
 
-        val subCallType = subCall
+        var subCallType = subCall
         subCall = help.getTagContent(tokensList(indexOfToken))
 
         //<identifier> SquareGame </identifier>
@@ -1071,7 +1077,7 @@ object EX_05 {
         if(methodTable.contains(subCallType)){
           codeToWrite += s"push ${methodTable.segmentOf(subCallType)} ${methodTable.indexOf(subCallType)}\n" // push local 0
           numOfExp = 1
-        } else if(subType == "method" && (classTable.contains(subCallType) || (methodTable.contains(subCallType)))) {
+        } else if(/*subType == "method" &&*/ (classTable.contains(subCallType) || (methodTable.contains(subCallType)))) {
           codeToWrite += s"push ${classTable.segmentOf(subCallType)} ${classTable.indexOf(subCallType)}\n" // push local 0
           numOfExp = 1
         }
@@ -1080,6 +1086,11 @@ object EX_05 {
         indexOfToken += 1
         numOfExp += expressionList()
 
+        if(classTable.contains(subCallType)) {
+          subCallType = classTable.typeOf(subCallType)
+        } else if (methodTable.contains(subCallType)) {
+          subCallType = methodTable.typeOf(subCallType)
+        }
         //<symbol> ) </symbol>
         indexOfToken += 1
         codeToWrite += s"call ${subCallType}.${subCall} ${numOfExp}\n"
@@ -1217,9 +1228,9 @@ object EX_05 {
 
         indexOfToken += 1
 
-        if(varSegment == "field") {
+        /*if(varSegment == "field") {
           varSegment = "this"
-        }
+        }*/
         codeToWrite += s"push ${varSegment} ${varOffset}\n"
       }
       /*indentLevel -= 1
