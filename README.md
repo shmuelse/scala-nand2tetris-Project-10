@@ -152,6 +152,6 @@ Built to the course specification: inputs are assumed to be well-formed Jack, so
 
 ## Credits
 
-Course project by Yonatan Friedman, Isaias Mola, and Shmuel Segal.
+Course project by Yonatan Friedman, and Shmuel Segal.
 
 Based on *The Elements of Computing Systems* (Nisan & Schocken), Project 10.
